@@ -4,12 +4,12 @@
 # Must be run as root to natively control running services.
 #
 # Author @michealespinola https://github.com/michealespinola
-# https://github.com/michealespinola/plexupdate
+# https://github.com/michealespinola/syno.plexupdate
 #
 # Forked from @martinorob https://github.com/martinorob
 # https://github.com/martinorob/plexupdate/
 #
-# Example Task 'user-defined script': bash /var/services/homes/admin/scripts/bash/plex/plexupdate/plexupdate.sh
+# Example Task 'user-defined script': bash /var/services/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
 #
 ########## USER CONFIGURABLE VARIABLES ####################
 # A NEW UPDATE MUST BE THIS MANY DAYS OLD
