@@ -22,7 +22,7 @@ OldUpdates=60
 ###########################################################
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
-printf "%s\n" "SYNO.PLEX UPDATER SCRIPT v2.3.1"
+printf "%s\n" "SYNO.PLEX UPDATER SCRIPT v2.3.2"
 printf "\n"
 
 # CHECK IF ROOT
