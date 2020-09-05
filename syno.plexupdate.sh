@@ -12,12 +12,14 @@
 # Example Task 'user-defined script': bash /var/services/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
 #
 ########## USER CONFIGURABLE VARIABLES ####################
+###########################################################
 # A NEW UPDATE MUST BE THIS MANY DAYS OLD
 MinimumAge=7
-#SAVED PACKAGES DELETED IF OLDER THAN THIS MANY DAYS
+# SAVED PACKAGES DELETED IF OLDER THAN THIS MANY DAYS
 OldUpdates=60
 
 ########## NOTHING WORTH MESSING WITH BELOW HERE ##########
+###########################################################
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
 printf "%s\n" "SYNO.PLEX UPDATER SCRIPT v2.3.1"
@@ -26,7 +28,7 @@ printf "\n"
 # CHECK IF ROOT
 if [ "$EUID" -ne "0" ]; then
   printf " %s\n" "This script MUST be run as root - exiting..."
-  /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server update failed via Plex Update task. Script was not run as root."}'
+  /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server update failed via Syno.Plex Update task. Script was not run as root."}'
   printf "\n"
   exit 1
 fi
@@ -36,7 +38,7 @@ DSMVersion=$(                   more /etc.defaults/VERSION | grep -i 'productver
 dpkg --compare-versions "5" gt "$DSMVersion"
 if [ "$?" -eq "0" ]; then
   printf " %s\n" "Plex Media Server requires DSM 5.0 minimum to install - exiting..."
-  /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server update failed via Plex Update task. DSM not at least version 5.0."}'
+  /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server update failed via Syno.Plex Update task. DSM not at least version 5.0."}'
   printf "\n"
   exit 1
 fi
@@ -140,11 +142,11 @@ if [ "$?" -eq "0" ]; then
     dpkg --compare-versions "$NowVersion" gt "$RunVersion"
     if [ "$?" -eq "0" ]; then
       printf " %s\n" "succeeded!"
-      /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server update succeeded via Plex Update task"}'
+      /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server update succeeded via Syno.Plex Update task"}'
       ExitStatus=1
     else
       printf " %s\n" "failed!"
-      /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server update failed via Plex Update task"}'
+      /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server update failed via Syno.Plex Update task"}'
       ExitStatus=1
     fi
   else
@@ -154,4 +156,5 @@ else
   printf " %s\n" "No new version found."
 fi
   printf "\n"
+# EXIT NORMALLY BUT POSSIBLY WITH FORCED EXIT STATUS FOR SCRIPT NOTIFICATIONS
 exit $ExitStatus
