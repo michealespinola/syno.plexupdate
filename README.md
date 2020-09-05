@@ -16,11 +16,11 @@ The default yet modifiable settings are that the script will not install an upda
 
 Download the script and place it into a location of your choosing. As an example, if you are using the "`admin`" account for system administration tasks, place the script within that accounts home folder such as in a nested folder location like this:
 
-    \\SYNOLOGY\home\scripts\bash\plex\plexupdate\plexupdate.sh
+    \\SYNOLOGY\home\scripts\bash\plex\syno.plexupdate\syno.plexupdate.sh
 
 -aka-
 
-    \\SYNOLOGY\homes\admin\scripts\bash\plex\plexupdate\plexupdate.sh
+    \\SYNOLOGY\homes\admin\scripts\bash\plex\syno.plexupdate\syno.plexupdate.sh
 
 ### DSM Task Scheduler Setup
 
@@ -28,10 +28,10 @@ Download the script and place it into a location of your choosing. As an example
 1. Open the [Control Panel](https://www.synology.com/en-global/knowledgebase/DSM/help/DSM/AdminCenter/ControlPanel_desc)
 1. Open [Task Scheduler](https://www.synology.com/en-global/knowledgebase/DSM/help/DSM/AdminCenter/system_taskscheduler)
    1. Click Create -> Scheduled Task -> User-defined script
-   1. Enter Task: name as '`Plex Update`', and leave User: set to '`root`'
+   1. Enter Task: name as '`Syno.Plex Update`', and leave User: set to '`root`'
    1. Click Schedule tab and configure per your requirements
    1. Click Task Settings tab
-   1. Enter 'User-defined script' as '`bash /var/services/homes/admin/scripts/bash/plex/plexupdate/plexupdate.sh`' if using the above script placement example. '`/var/services/homes`' is the base location of user home directories
+   1. Enter 'User-defined script' as '`bash /var/services/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh`' if using the above script placement example. '`/var/services/homes`' is the base location of user home directories
 1. Click OK
 
 # Script Logic Flow
