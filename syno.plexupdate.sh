@@ -22,7 +22,7 @@ OldUpdates=60
 ###########################################################
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
-printf "%s\n" "SYNO.PLEX UPDATER SCRIPT v2.3.2"
+printf "%s\n" "SYNO.PLEX UPDATER SCRIPT v2.3.3"
 printf "\n"
 
 # CHECK IF ROOT
@@ -66,7 +66,7 @@ fi
 PlexOToken=$(cat "$PlexFolder/Preferences.xml" | grep -oP 'PlexOnlineToken="\K[^"]+')
 # SCRAPE PLEX SERVER UPDATE CHANNEL
 PlexChannl=$(cat "$PlexFolder/Preferences.xml" | grep -oP 'ButlerUpdateChannel="\K[^"]+')
-if [ -z "${PlexChannl+x}" ]; then
+if [ -z "$PlexChannl" ]; then
   # DEFAULT TO PUBLIC SERVER UPDATE CHANNEL IF NULL (NEVER SET) VALUE
   ChannlName=Public
   ChannelUrl=$(echo "https://plex.tv/api/downloads/5.json")
