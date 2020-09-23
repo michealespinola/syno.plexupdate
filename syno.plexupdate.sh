@@ -1,28 +1,33 @@
 #!/bin/bash
+
+# A script to automagically update Plex Media Server on Synology NAS
+# This must be run as root to natively control running services.
 #
-# Script to automagically update Plex Media Server on Synology NAS
-# Must be run as root to natively control running services.
+# Author @michealespinola https://github.com/michealespinola/syno.plexupdate
 #
-# Author @michealespinola https://github.com/michealespinola
-# https://github.com/michealespinola/syno.plexupdate
-#
-# Originally forked from @martinorob https://github.com/martinorob
-# https://github.com/martinorob/plexupdate/
+# Update concept via https://github.com/martinorob/plexupdate/
+# Getopt example via https://www.shellscript.sh/tips/getopt/
 #
 # Example Task 'user-defined script': 
 # bash /volume1/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
-#
-########## USER CONFIGURABLE VARIABLES ####################
+
+# USER CONFIGURABLE VARIABLES #############################
 ###########################################################
+
 # A NEW UPDATE MUST BE THIS MANY DAYS OLD
 MinimumAge=7
-# SAVED PACKAGES DELETED IF OLDER THAN THIS MANY DAYS
+# PREVIOUSLY DOWNLOADED PACKAGES DELETED IF OLDER THAN THIS MANY DAYS
 OldUpdates=60
+# NETWORK TIMEOUT IN SECONDS (900s = 15m)
+NetTimeout=900
+# SCRIPT WILL SELF-UPDATE IF SET TO 1
+SelfUpdate=0
 
-########## NOTHING WORTH MESSING WITH BELOW HERE ##########
+# NOTHING WORTH MESSING WITH BELOW HERE ###################
 ###########################################################
+
 # SCRIPT VERSION
-SPUScrpVer=2.9.9
+SPUScrpVer=2.9.9.1
 MinDSMVers=6.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -31,7 +36,7 @@ printf "\n"
 
 # CHECK IF ROOT
 if [ "$EUID" -ne "0" ]; then
-  printf " %s\n" "This script MUST be run as root - exiting..."
+  printf " %s\n" "* This script MUST be run as root - exiting..."
   /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server\n\nSyno.Plex Update task failed. Script was not run as root."}'
   printf "\n"
   exit 1
@@ -47,7 +52,7 @@ SPUSFileNm=${SPUSFllPth##*/}
 
 #CHECK IF SCRIPT IS ARCHIVED
 if [ ! -d "$SPUSFolder/Archive/Scripts" ]; then
-  mkdir "$SPUSFolder/Archive/Scripts"
+  mkdir -p "$SPUSFolder/Archive/Scripts"
 fi
 if [ ! -f "$SPUSFolder/Archive/Scripts/syno.plexupdate.v$SPUScrpVer.sh" ]; then
   cp "$SPUSFllPth" "$SPUSFolder/Archive/Scripts/syno.plexupdate.v$SPUScrpVer.sh"
@@ -58,8 +63,8 @@ else
   fi
 fi
 
-# SCRAPE GITHUB FOR UPDATE INFO (15 MINUTE TIMEOUT)
-SPUSRelHtm=$(curl -m 900 -L -s https://github.com/michealespinola/syno.plexupdate/releases/latest)
+# SCRAPE GITHUB FOR UPDATE INFO
+SPUSRelHtm=$(curl -m $NetTimeout -L -s https://github.com/michealespinola/syno.plexupdate/releases/latest)
 if [ "$?" -eq "0" ]; then
   SPUSZipLnk=https://github.com/$(echo $SPUSRelHtm | grep -oP 'michealespinola\/syno.plexupdate\/archive\/v\d{1,}\.\d{1,}\.\d{1,}\.zip')
   SPUSZipFil=${SPUSZipLnk##*/}
@@ -67,6 +72,7 @@ if [ "$?" -eq "0" ]; then
   SPUSGtDate=$(echo $SPUSRelHtm | grep -oP 'relative-time datetime="\K[^"]+')
   SPUSRlDate=$(date --date "$SPUSGtDate" +'%s')
   SPUSRelAge=$((($TodaysDate-$SPUSRlDate)/86400))
+  SPUSDwnUrl=https://raw.githubusercontent.com/michealespinola/syno.plexupdate/v$SPUSZipVer/syno.plexupdate.sh
 else
   printf " %s\n" "* UNABLE TO CHECK FOR LATEST VERSION OF SCRIPT..."
   printf "\n"
@@ -83,9 +89,45 @@ if [ "$SPUSZipVer" != "" ]; then
 fi
 
 # COMPARE SCRIPT VERSIONS
-dpkg --compare-versions "$SPUSZipVer" gt "$SPUScrpVer"
+/usr/bin/dpkg --compare-versions "$SPUSZipVer" gt "$SPUScrpVer"
 if [ "$?" -eq "0" ]; then
   printf "             %s\n" "* Newer version found!"
+
+  # DOWNLOAD AND INSTALL THE SCRIPT UPDATE
+  if [ "$SelfUpdate" -eq "1" ]; then
+    if [ $SPUSRelAge -ge $MinimumAge ]; then
+      printf "\n"
+      printf "%s\n" "INSTALLING NEW SCRIPT:"
+      printf "%s\n" "----------------------------------------"
+      /bin/wget $SPUSDwnUrl -nv -O "$SPUSFolder/Archive/Scripts/$SPUSFileNm"
+      if [ "$?" -eq "0" ]; then
+        # MAKE A COPY FOR UPGRADE COMPARISON BECAUSE WE ARE GOING TO MOVE NOT COPY THE NEW FILE
+        cp -f "$SPUSFolder/Archive/Scripts/$SPUSFileNm" "$SPUSFolder/Archive/Scripts/$SPUSFileNm.cmp"
+        # MOVE-OVERWRITE INSTEAD OF COPY-OVERWRITE TO NOT CORRUPT RUNNING IN-MEMORY VERSION OF SCRIPT
+        mv -f "$SPUSFolder/Archive/Scripts/$SPUSFileNm" "$SPUSFolder/$SPUSFileNm"
+        printf "%s\n" "----------------------------------------"
+        cmp -s "$SPUSFolder/Archive/Scripts/$SPUSFileNm.cmp" "$SPUSFolder/$SPUSFileNm"
+        if [ "$?" -eq "0" ]; then
+          printf "             %s\n" "* Script update succeeded!"
+          /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update completed successfully"}'
+          ExitStatus=1
+        else
+          printf "             %s\n" "* Script update failed to overwrite."
+          /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update failed."}'
+          ExitStatus=1
+        fi
+      else
+        printf "             %s\n" "* Script update failed to download."
+        /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update failed to download."}'
+        ExitStatus=1
+      fi
+    else
+      printf " %s\n" "Update newer than $MinimumAge days - skipping..."
+    fi
+    # DELETE ANY EXISTING COMPARISON FILES
+    find "$SPUSFolder/Archive/Scripts" -type f -name "*.cmp" -delete
+  fi
+
 else
   printf "             %s\n" "* No new version found."
 fi
@@ -101,9 +143,9 @@ DSMVersion=$(                   cat /etc.defaults/VERSION | grep -i 'productvers
 if [ "$SynoHModel" == "DS214Play" ] || [ "$SynoHModel" == "DS415Play" ]; then
   MinDSMVers=5.2
 fi
-dpkg --compare-versions "$MinDSMVers" gt "$DSMVersion"
+/usr/bin/dpkg --compare-versions "$MinDSMVers" gt "$DSMVersion"
 if [ "$?" -eq "0" ]; then
-  printf " %s\n" "Plex Media Server $SynoHModel for requires DSM $MinDSMVers minimum to install - exiting..."
+  printf " %s\n" "* Plex Media Server for $SynoHModel requires DSM $MinDSMVers minimum to install - exiting..."
   /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server\n\nSyno.Plex Update task failed. DSM not sufficient version."}'
   printf "\n"
   exit 1
@@ -121,7 +163,7 @@ PlexFolder=$(echo $PlexFolder | /usr/syno/bin/synopkg log "Plex Media Server")
 PlexFolder=$(echo ${PlexFolder%/Logs/Plex Media Server.log})
 PlexFolder=/$(echo ${PlexFolder#*/})
 if [ -d "$PlexFolder/Updates" ]; then
-  mv "$PlexFolder/Updates/"* "$SPUSFolder/Archive/Packages/" 2>/dev/null
+  mv -f "$PlexFolder/Updates/"* "$SPUSFolder/Archive/Packages/" 2>/dev/null
   if [ -n "$(find "$PlexFolder/Updates/" -prune -empty) 2>/dev/null" ]; then
     rmdir "$PlexFolder/Updates/"
   fi
@@ -129,7 +171,7 @@ fi
 if [ -d "$SPUSFolder/Archive/Packages" ]; then
   find "$SPUSFolder/Archive/Packages" -type f -name "PlexMediaServer*.spk" -mtime +$OldUpdates -delete
 else
-  mkdir "$SPUSFolder/Archive/Packages"
+  mkdir -p "$SPUSFolder/Archive/Packages"
 fi
 
 # SCRAPE PLEX ONLINE TOKEN
@@ -158,8 +200,8 @@ else
   fi
 fi
 
-# SCRAPE PLEX FOR UPDATE INFO (15 MINUTE TIMEOUT)
-DistroJson=$(curl -m 900 -L -s $ChannelUrl)
+# SCRAPE PLEX FOR UPDATE INFO
+DistroJson=$(curl -m $NetTimeout -L -s $ChannelUrl)
 if [ "$?" -eq "0" ]; then
   NewVersion=$(echo $DistroJson | jq                                -r '.nas.Synology.version')
   NewVerDate=$(echo $DistroJson | jq                                -r '.nas.Synology.release_date')
@@ -185,7 +227,7 @@ if [ "$NewVersion" != "" ]; then
 fi
 
 # COMPARE PLEX VERSIONS
-dpkg --compare-versions "$NewVersion" gt "$RunVersion"
+/usr/bin/dpkg --compare-versions "$NewVersion" gt "$RunVersion"
 if [ "$?" -eq "0" ]; then
   printf "             %s\n" "* Newer version found!"
   printf "\n"
@@ -197,7 +239,7 @@ if [ "$?" -eq "0" ]; then
   if [ $PackageAge -ge $MinimumAge ]; then
     printf "%s\n" "INSTALLING NEW PACKAGE:"
     printf "%s\n" "----------------------------------------"
-    /bin/wget $NewDwnlUrl -q -c -nc -P "$SPUSFolder/Archive/Packages/"
+    /bin/wget $NewDwnlUrl -nv -c -nc -P "$SPUSFolder/Archive/Packages/"
     if [ "$?" -eq "0" ]; then
       /usr/syno/bin/synopkg stop    "Plex Media Server"
       /usr/syno/bin/synopkg install "$SPUSFolder/Archive/Packages/$NewPackage"
@@ -212,7 +254,7 @@ if [ "$?" -eq "0" ]; then
     printf "%14s %s"                 "to:" "$NewVersion"
 
     # REPORT PLEX UPDATE STATUS
-    dpkg --compare-versions "$NowVersion" gt "$RunVersion"
+    /usr/bin/dpkg --compare-versions "$NowVersion" gt "$RunVersion"
     if [ "$?" -eq "0" ]; then
       printf " %s\n" "succeeded!"
       printf "\n"
