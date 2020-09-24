@@ -10,7 +10,7 @@ Although only personally tested on my DS1019+, this script has been written with
 
 The default yet modifiable settings are that the script will not install an update unless it is 7 days old. This is a stability safety-catch so that if a release has a bug, it is assumed it will be discovered and fixed within 7 days. Otherwise, it keeps previously downloaded/installed packages in its "Updates" directory for 60 days before automatic deletion.
 
-# How-to Setup Example
+# How-To Setup Example
 
 ### 1. Save the Script to Your NAS
 
@@ -58,7 +58,7 @@ Updates directly from Plex (which is what this script installs) are not installa
 1. If a new version exists and is older than the default 7-days - install the new version
 1. Check if the upgrade was successful and send appropriate notifications
 
-# To Do
+# To-Do
 
 The code currently has (4) hardcoded default but user-configurable variables:
 
