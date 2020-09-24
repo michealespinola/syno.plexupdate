@@ -31,7 +31,7 @@ Updates directly from Plex (which is what this script installs) are not installa
 1. Download the key from here: https://downloads.plex.tv/plex-keys/PlexSign.key
 1. Open the [DSM](https://www.synology.com/en-global/knowledgebase/DSM/help) web interface
 1. Open the [Package Center](https://www.synology.com/en-global/knowledgebase/DSM/help/DSM/PkgManApp/PackageCenter_desc)
-   1. Click the General tab and change the Trust Level to "Synology Inc. and trusted publishers
+   1. Click the General tab and change the Trust Level to "Synology Inc. and trusted publishers"
    1. Click on the Certificate tab and click the Import button
    1. Supply the location of the downloaded key file and import it
 1. Click OK
