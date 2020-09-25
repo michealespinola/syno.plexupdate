@@ -21,7 +21,7 @@ OldUpdates=60
 # NETWORK TIMEOUT IN SECONDS (900s = 15m)
 NetTimeout=900
 # SCRIPT WILL SELF-UPDATE IF SET TO 1
-SelfUpdate=1
+SelfUpdate=0
 
 # NOTHING WORTH MESSING WITH BELOW HERE ###################
 ###########################################################
