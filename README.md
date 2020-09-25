@@ -79,5 +79,6 @@ Many thanks to:
 
 1. [j0nsplex](https://forums.plex.tv/u/j0nsplex) for starting it all
 1. [martinorob](https://github.com/martinorob) for giving me a jumping-off point
-1. [ChuckPa](https://forums.plex.tv/u/ChuckPa) and [trumpy81](https://forums.plex.tv/u/trumpy81) at Plex for being kind and encouraging to this endevour
+1. [ChuckPa](https://forums.plex.tv/u/ChuckPa) and [trumpy81](https://forums.plex.tv/u/trumpy81) at Plex for being kind and encouraging to this endeavour
 1. [Kynch](https://forums.plex.tv/u/Kynch) for the idea of self-updating the script
+1. [SunMar](https://forums.plex.tv/u/SunMar) for the idea of a changelog
