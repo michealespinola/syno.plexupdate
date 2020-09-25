@@ -21,13 +21,13 @@ OldUpdates=60
 # NETWORK TIMEOUT IN SECONDS (900s = 15m)
 NetTimeout=900
 # SCRIPT WILL SELF-UPDATE IF SET TO 1
-SelfUpdate=0
+SelfUpdate=1
 
 # NOTHING WORTH MESSING WITH BELOW HERE ###################
 ###########################################################
 
 # SCRIPT VERSION
-SPUScrpVer=2.9.9.1
+SPUScrpVer=2.9.9.2
 MinDSMVers=6.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -124,8 +124,8 @@ if [ "$?" -eq "0" ]; then
     else
       printf " %s\n" "Update newer than $MinimumAge days - skipping..."
     fi
-    # DELETE ANY EXISTING COMPARISON FILES
-    find "$SPUSFolder/Archive/Scripts" -type f -name "*.cmp" -delete
+    # DELETE TEMP COMPARISON FILE
+    find "$SPUSFolder/Archive/Scripts" -type f -name "$SPUSFileNm.cmp" -delete
   fi
 
 else
@@ -216,6 +216,30 @@ else
   ExitStatus=1
 fi
 
+# UPDATE LOCAL VERSION CHANGELOG
+grep -q         "Version $NewVersion ($(date --rfc-3339 seconds --date @$NewVerDate))"    "$SPUSFolder/Archive/Packages/changelog.txt" 2>/dev/null
+if [ "$?" -ne "0" ]; then
+  printf "%s\n" "Version $NewVersion ($(date --rfc-3339 seconds --date @$NewVerDate))" >  "$SPUSFolder/Archive/Packages/changelog.new"
+  printf "%s\n" ""                                                                     >> "$SPUSFolder/Archive/Packages/changelog.new"
+  printf "%s\n" "New Features:"                                                        >> "$SPUSFolder/Archive/Packages/changelog.new"
+  printf "%s\n" "$NewVerAddd" | awk '{ print "* " $0 }'                                >> "$SPUSFolder/Archive/Packages/changelog.new"
+  printf "%s\n" ""                                                                     >> "$SPUSFolder/Archive/Packages/changelog.new"
+  printf "%s\n" "Fixed Features:"                                                      >> "$SPUSFolder/Archive/Packages/changelog.new"
+  printf "%s\n" "$NewVerFixd" | awk '{ print "* " $0 }'                                >> "$SPUSFolder/Archive/Packages/changelog.new"
+  printf "%s\n" ""                                                                     >> "$SPUSFolder/Archive/Packages/changelog.new"
+  printf "%s\n" "----------------------------------------"                             >> "$SPUSFolder/Archive/Packages/changelog.new"
+  printf "%s\n" ""                                                                     >> "$SPUSFolder/Archive/Packages/changelog.new"
+  if [ -f "$SPUSFolder/Archive/Packages/changelog.new" ]; then
+    if [ -f "$SPUSFolder/Archive/Packages/changelog.txt" ]; then
+      mv    "$SPUSFolder/Archive/Packages/changelog.txt" "$SPUSFolder/Archive/Packages/changelog.tmp"
+      cat   "$SPUSFolder/Archive/Packages/changelog.new" "$SPUSFolder/Archive/Packages/changelog.tmp" > "$SPUSFolder/Archive/Packages/changelog.txt"
+    else
+      mv    "$SPUSFolder/Archive/Packages/changelog.new" "$SPUSFolder/Archive/Packages/changelog.txt"    
+    fi
+  fi
+fi
+rm "$SPUSFolder/Archive/Packages/changelog.new" "$SPUSFolder/Archive/Packages/changelog.tmp" 2>/dev/null
+
 # PRINT PLEX STATUS/DEBUG INFO
 printf "%14s %s\n"         "Synology:" "$SynoHModel ($ArchFamily), DSM $DSMVersion"
 printf "%14s %s\n"         "Plex Dir:" "$PlexFolder"
@@ -262,7 +286,7 @@ if [ "$?" -eq "0" ]; then
         # SHOW NEW PLEX FEATURES
         printf "%s\n" "NEW FEATURES:"
         printf "%s\n" "----------------------------------------"
-        printf "%s\n" "$NewVerAddd"
+        printf "%s\n" "$NewVerAddd" | awk '{ print "* " $0 }'
         printf "%s\n" "----------------------------------------"
       fi
       printf "\n"
@@ -270,7 +294,7 @@ if [ "$?" -eq "0" ]; then
         # SHOW FIXED PLEX FEATURES
         printf "%s\n" "FIXED FEATURES:"
         printf "%s\n" "----------------------------------------"
-        printf "%s\n" "$NewVerFixd"
+        printf "%s\n" "$NewVerFixd" | awk '{ print "* " $0 }'
         printf "%s\n" "----------------------------------------"
       fi
       /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server\n\nSyno.Plex Update task completed successfully"}'
