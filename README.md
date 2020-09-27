@@ -45,7 +45,7 @@ Updates directly from Plex (which is what this script installs) are not installa
    1. Enter Task: name as '`Syno.Plex Update`', and leave User: set to '`root`'
    1. Click Schedule tab and configure per your requirements
    1. Click Task Settings tab
-   1. Enter 'User-defined script' as '`bash /var/services/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh`' if using the above script placement example. '`/var/services/homes`' is the base location of user home directories
+   1. Enter 'User-defined script' as '`/volume1/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh`' if using the above script placement example.
 1. Click OK
 
 # Script Logic Flow
