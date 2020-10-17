@@ -45,9 +45,7 @@ Updates directly from Plex (which is what this script installs) are not installa
    1. Enter Task: name as '`Syno.Plex Update`', and leave User: set to '`root`'
    1. Click Schedule tab and configure per your requirements
    1. Click Task Settings tab
-   1. Enter 'User-defined script' similar to '`bash /volume1/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh`' if using the above script placement example
-
-      '`/volume1`' is the default storage volume on a Synology NAS. You can determine your script directory's full pathname by looking at the Location properties of the folder with the [File Station](https://www.synology.com/en-global/knowledgebase/DSM/help/FileStation/FileBrowser_desc) tool in the DSM:
+   1. Enter 'User-defined script' similar to '`bash /volume1/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh`' if using the above script placement example. '`/volume1`' is the default storage volume on a Synology NAS. You can determine your script directory's full pathname by looking at the Location properties of the folder with the [File Station](https://www.synology.com/en-global/knowledgebase/DSM/help/FileStation/FileBrowser_desc) tool in the DSM:
       1. Right-click on the folder containing the script and choose Properties
       1. Copy the full directory path from the Location field
 1. Click OK
