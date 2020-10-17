@@ -2,9 +2,9 @@
 
 ### Automatically Update Plex Media Server on the Synology NAS platform
 
-This script takes into account many if not all of the issues I have previously read about for automatically updating Plex on the Synology NAS platform. This is a heavily-modified/overhauled version of the "[martinorob/plexupdate](https://github.com/martinorob/plexupdate)" script, with the specific intent to simplify its use to not require any Bash script variable editing or SSH access to the Synology NAS. This script originally started as a simple fork, but over the generations has turned into a wholly different script aside from the core task of updating Plex Media Server. The "fork" has been officially discontinued because it no longer resembles the original code, and has different support requirements.
+This script takes into account many if not all of the issues I have previously read about for automatically updating Plex on the Synology NAS platform. This is a heavily-modified/overhauled version of the "[martinorob/plexupdate](https://github.com/martinorob/plexupdate)" script, with the specific intent to simplify its use to not require any Bash script variable editing or SSH access to the Synology NAS. This script originally started as a simple fork, but over the generations has turned into a wholly different script aside from the core task of updating Plex Media Server. The "fork" has been officially discontinued because it no longer resembles the original script, and has different support requirements.
 
-Everything you need to do to get this script running is accomplishable via the most basic DSM web administration by dropping this script onto the NAS and configuring a scheduled Task. This script is specifically for the update of the official Synology package of the Plex Media Server. This script utilizes Synology’s built-in tools to self-determine everything it needs to know about where Plex is located, how to update it, and to notify the system of updates or failures to the update process. If Plex is installed and properly configured, you will not have to edit this script for any details about the installation location of Plex. Public or Beta Update Channel update selection follows what you have configured in the Plex Media Server general settings.
+Everything you need to do to get this script running is accomplishable via the most basic DSM web administration by dropping this script onto the NAS and configuring a scheduled Task. This script is specifically for the update of the official Synology package of the Plex Media Server as released by Plex GmbH. This script utilizes Synology’s built-in tools to self-determine everything it needs to know about where Plex is located, how to update it, and to notify the system of updates or failures to the update process. If Plex is installed and properly configured, you will not have to edit this script for any details about the installation location of Plex. Public or Beta Update Channel update selection follows what you have configured in the Plex Media Server general settings.
 
 Although only personally tested on my DS1019+, this script has been written with the intent to work on any compatible Synology platform. It reads your hardware architecture from the system and matches it against what is compatible with Plex. If its a part of the official Plex public or beta channel, this script will update it.
 
@@ -14,13 +14,13 @@ The default yet modifiable settings are that the script will not install an upda
 
 ### 1. Save the Script to Your NAS
 
-Download the script and place it into a location of your choosing. As an example, if you are using the "`admin`" account for system administration tasks, you can place the script within that accounts home folder; such as in a nested folder location like this:
+Download the script and place it into a location of your choosing. As an example, if you are using the "`admin`" account for system administration tasks, you can place the script within that accounts home folder; such as in a nested directory location like this:
 
-    \\SYNOLOGY\home\scripts\bash\plex\syno.plexupdate\syno.plexupdate.sh
+    /home/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
 
 -aka-
 
-    \\SYNOLOGY\homes\admin\scripts\bash\plex\syno.plexupdate\syno.plexupdate.sh
+    /homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
 
 ### 2. Add the Plex 'Public Key Certificate' in the DSM
 
@@ -45,22 +45,78 @@ Updates directly from Plex (which is what this script installs) are not installa
    1. Enter Task: name as '`Syno.Plex Update`', and leave User: set to '`root`'
    1. Click Schedule tab and configure per your requirements
    1. Click Task Settings tab
-   1. Enter 'User-defined script' as '`bash /var/services/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh`' if using the above script placement example. '`/var/services/homes`' is the base location of user home directories
+   1. Enter 'User-defined script' similar to '`bash /volume1/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh`' if using the above script placement example
+
+      '`/volume1`' is the default storage volume on a Synology NAS. You can determine your script directory's full pathname by looking at the Location properties of the folder with the [File Station](https://www.synology.com/en-global/knowledgebase/DSM/help/FileStation/FileBrowser_desc) tool in the DSM:
+      1. Right-click on the folder containing the script and choose Properties
+      1. Copy the full directory path from the Location field
 1. Click OK
 
 # Script Logic Flow
 
 1. Identify the "Plex Media Server" installation directory and other system-specific technical details
-1. Create a "Updates" archive directory if it does not exist, and remove old update package files
+1. Create a "Packages" Archive directory if it does not exist, and remove old update package files
 1. Extract Plex Token from local Preferences file for use to lookup available updates
 1. Scrape JSON data to identify applicable updates specific to hardware architecture
 1. Compare currently running version information against latest online version
 1. If a new version exists and is older than the default 7-days - install the new version
-1. Check if the upgrade was successful and send appropriate notifications
+1. Check if the upgrade was successful, update local changelog if applicable, and send appropriate notifications
+
+# Script Directory Structure
+
+The script will automatically create directories and files as needed in the following structure based off of the location of the script, as per this example:
+
+    /volume1/homes/admin/scripts/bash/plex/syno.plexupdate
+    |   README.md
+    |   syno.plexupdate.sh
+    |
+    \---Archive
+       +---Packages
+       |       changelog.txt
+       |       PlexMediaServer-1.20.1.3252-a78fef9a9-x86_64.spk
+       |       PlexMediaServer-1.20.2.3402-0fec14d92-x86_64.spk
+       |       ...
+       |
+       \---Scripts
+                syno.plexupdate.v2.3.1.sh
+                syno.plexupdate.v2.3.2.sh
+                syno.plexupdate.v2.3.3.sh
+                syno.plexupdate.v2.9.9.sh
+                syno.plexupdate.v2.9.9.1.sh
+                syno.plexupdate.v2.9.9.2.sh
+                ...
+
+The Archive folder contains copies of Plex update Packages as well as copies of the update Scripts that are running. The script archive is not a mirror of what is on GitHub. The script archive is for version rollback purposes, and are a snapshot of your running copy of the script. If you make modifications to the script, the copy in the script archive will be updated accordingly.
+
+The '`changelog.txt`' file is a historical changelog only for updates installed by the script.
+
+# Example Output
+
+    SYNO.PLEX UPDATER SCRIPT v2.9.9.2
+    
+           Script: syno.plexupdate.sh v2.9.9.2
+       Script Dir: /volume1/homes/admin/scripts/bash/plex/syno.plexupdate
+      Running Ver: 2.9.9.2
+       Online Ver: 2.3.3
+         Released: 2020-09-06 06:34:14-07:00 (41+ days old)
+                 * No new version found.
+    
+         Synology: DS1019+ (x86_64), DSM 6.2.3-25426 Update 2
+         Plex Dir: /volume1/Plex/Library/Application Support/Plex Media Server
+       Plex Token: XXXXXXXXXXXXXXXXXXXX
+      Running Ver: 1.20.2.3402-0fec14d92
+       Online Ver: 1.20.3.3437-f1f08d65b (Public Channel)
+         Released: 2020-10-14 07:22:52-07:00 (3+ days old)
+                 * Newer version found!
+    
+      New Package: PlexMediaServer-1.20.3.3437-f1f08d65b-x86_64.spk
+      Package Age: 3+ days old (7+ required for install)
+    
+     Update newer than 7 days - skipping...
 
 # To-Do
 
-The code currently has (4) hardcoded default but user-configurable variables:
+The script currently has (4) hardcoded default but user-configurable variables:
 
 1. `MinimumAge=7`
    * A **7**-day age requirement for installing the latest version as a bug/issue deterrent
