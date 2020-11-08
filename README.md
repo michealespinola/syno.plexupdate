@@ -52,6 +52,8 @@ Updates directly from Plex (which is what this script installs) are not installa
       1. Copy the full directory path from the Location field
 1. Click OK
 
+**Note**: If the DSM is not configured to allow 3rd party "trusted publishers" the script will log "`error = [289]`" during the package installation process.
+
 # Script Logic Flow
 
 1. Identify the "Plex Media Server" installation directory and other system-specific technical details
