@@ -36,6 +36,8 @@ Updates directly from Plex (which is what this script installs) are not installa
    1. Supply the location of the downloaded key file and import it
 1. Click OK
 
+**Note**: If the DSM is not configured to allow 3rd-party "trusted publishers" the script will log "`error = [289]`" during the package installation process.
+
 ### 3. Setup a Scheduled Task in the DSM
 
 1. Open the [DSM](https://www.synology.com/en-global/knowledgebase/DSM/help) web interface
