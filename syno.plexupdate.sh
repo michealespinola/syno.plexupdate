@@ -27,7 +27,7 @@ SelfUpdate=0
 ###########################################################
 
 # SCRIPT VERSION
-SPUScrpVer=2.9.9.2
+SPUScrpVer=2.9.9.3
 MinDSMVers=6.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -41,9 +41,6 @@ if [ "$EUID" -ne "0" ]; then
   printf "\n"
   exit 1
 fi
-
-# GET EPOCH TIMESTAMP FOR AGE CHECKS
-TodaysDate=$(date --date "now" +'%s')
 
 # SCRAPE SCRIPT PATH INFO
 SPUSFllPth=$(readlink -f "$0")
@@ -63,6 +60,9 @@ else
   fi
 fi
 
+# GET EPOCH TIMESTAMP FOR AGE CHECKS
+TodaysDate=$(date --date "now" +'%s')
+
 # SCRAPE GITHUB FOR UPDATE INFO
 SPUSRelHtm=$(curl -m $NetTimeout -L -s https://github.com/michealespinola/syno.plexupdate/releases/latest)
 if [ "$?" -eq "0" ]; then
@@ -80,12 +80,12 @@ else
 fi
 
 # PRINT SCRIPT STATUS/DEBUG INFO
-printf "%14s %s\n"           "Script:" "$SPUSFileNm v$SPUScrpVer"
-printf "%14s %s\n"       "Script Dir:" "$SPUSFolder"
-printf "%14s %s\n"      "Running Ver:" "$SPUScrpVer"
+printf "%16s %s\n"           "Script:" "$SPUSFileNm v$SPUScrpVer"
+printf "%16s %s\n"       "Script Dir:" "$SPUSFolder"
+printf "%16s %s\n"      "Running Ver:" "$SPUScrpVer"
 if [ "$SPUSZipVer" != "" ]; then
-  printf "%14s %s\n"     "Online Ver:" "$SPUSZipVer"
-  printf "%14s %s\n"       "Released:" "$(date --rfc-3339 seconds --date @$SPUSRlDate) ($SPUSRelAge+ days old)"
+  printf "%16s %s\n"     "Online Ver:" "$SPUSZipVer"
+  printf "%16s %s\n"       "Released:" "$(date --rfc-3339 seconds --date @$SPUSRlDate) ($SPUSRelAge+ days old)"
 fi
 
 # COMPARE SCRIPT VERSIONS
@@ -241,13 +241,13 @@ fi
 rm "$SPUSFolder/Archive/Packages/changelog.new" "$SPUSFolder/Archive/Packages/changelog.tmp" 2>/dev/null
 
 # PRINT PLEX STATUS/DEBUG INFO
-printf "%14s %s\n"         "Synology:" "$SynoHModel ($ArchFamily), DSM $DSMVersion"
-printf "%14s %s\n"         "Plex Dir:" "$PlexFolder"
-printf "%14s %s\n"       "Plex Token:" "$PlexOToken"
-printf "%14s %s\n"      "Running Ver:" "$RunVersion"
+printf "%16s %s\n"         "Synology:" "$SynoHModel ($ArchFamily), DSM $DSMVersion"
+printf "%16s %s\n"         "Plex Dir:" "$PlexFolder"
+printf "%16s %s\n"       "Plex Token:" "$PlexOToken"
+printf "%16s %s\n"      "Running Ver:" "$RunVersion"
 if [ "$NewVersion" != "" ]; then
-  printf "%14s %s\n"     "Online Ver:" "$NewVersion ($ChannlName Channel)"
-  printf "%14s %s\n"       "Released:" "$(date --rfc-3339 seconds --date @$NewVerDate) ($PackageAge+ days old)"
+  printf "%16s %s\n"     "Online Ver:" "$NewVersion ($ChannlName Channel)"
+  printf "%16s %s\n"       "Released:" "$(date --rfc-3339 seconds --date @$NewVerDate) ($PackageAge+ days old)"
 fi
 
 # COMPARE PLEX VERSIONS
@@ -255,8 +255,8 @@ fi
 if [ "$?" -eq "0" ]; then
   printf "             %s\n" "* Newer version found!"
   printf "\n"
-  printf "%14s %s\n"      "New Package:" "$NewPackage"
-  printf "%14s %s\n"      "Package Age:" "$PackageAge+ days old ($MinimumAge+ required for install)"
+  printf "%16s %s\n"      "New Package:" "$NewPackage"
+  printf "%16s %s\n"      "Package Age:" "$PackageAge+ days old ($MinimumAge+ required for install)"
   printf "\n"
 
   # DOWNLOAD AND INSTALL THE PLEX UPDATE
@@ -266,7 +266,9 @@ if [ "$?" -eq "0" ]; then
     /bin/wget $NewDwnlUrl -nv -c -nc -P "$SPUSFolder/Archive/Packages/"
     if [ "$?" -eq "0" ]; then
       /usr/syno/bin/synopkg stop    "Plex Media Server"
+      printf "\n"
       /usr/syno/bin/synopkg install "$SPUSFolder/Archive/Packages/$NewPackage"
+      printf "\n"
       /usr/syno/bin/synopkg start   "Plex Media Server"
     else
       printf "\n %s\n" "* Package download failed, skipping install..."
@@ -274,8 +276,8 @@ if [ "$?" -eq "0" ]; then
     printf "%s\n" "----------------------------------------"
     printf "\n"
     NowVersion=$(/usr/syno/bin/synopkg version "Plex Media Server")
-    printf "%14s %s\n"      "Update from:" "$RunVersion"
-    printf "%14s %s"                 "to:" "$NewVersion"
+    printf "%16s %s\n"      "Update from:" "$RunVersion"
+    printf "%16s %s"                 "to:" "$NewVersion"
 
     # REPORT PLEX UPDATE STATUS
     /usr/bin/dpkg --compare-versions "$NowVersion" gt "$RunVersion"
