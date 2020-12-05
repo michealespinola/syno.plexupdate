@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # A script to automagically update Plex Media Server on Synology NAS
-# This must be run as root to natively control running services.
+# This must be run as root to natively control running services
 #
 # Author @michealespinola https://github.com/michealespinola/syno.plexupdate
 #
