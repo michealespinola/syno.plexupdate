@@ -36,8 +36,6 @@ Updates directly from Plex (which is what this script installs) are not installa
    1. Supply the location of the downloaded key file and import it
 1. Click OK
 
-**Note**: If the DSM is not configured to allow 3rd-party "trusted publishers" the script will log "`error = [289]`" during the package installation process.
-
 ### 3. Setup a Scheduled Task in the DSM
 
 1. Open the [DSM](https://www.synology.com/en-global/knowledgebase/DSM/help) web interface
@@ -115,6 +113,12 @@ The '`changelog.txt`' file is a historical changelog only for updates installed 
       Package Age: 3+ days old (7+ required for install)
     
      Update newer than 7 days - skipping...
+
+# Known Non-Issues
+
+* If the DSM is not configured to allow 3rd-party "trusted publishers", the script will log "`error = [289]`" during the package installation process. Synology DSM has been known to sporadically "lose" 3rd-party security certificates. If this happens, you will have to manually re-add it to your system.
+* If the script runs successfully, the DSM Task status will show "Interrupted (1)". This exit/error status of (1) is intentionally caused by the script in order to force the DSM to perform a notification of a successful update (in the form of an interruption/error). The DSM otherwise will not send notifications of successful Task executions.
+
 
 # To-Do
 
