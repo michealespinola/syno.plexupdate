@@ -1,4 +1,4 @@
-![syno.plexupdater logo](./images/Syno.PLEX%20logo%20790px.png)
+![syno.plexupdate logo](./images/Syno.PLEX%20logo.png)
 
 
 # Description
