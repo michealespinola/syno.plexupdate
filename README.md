@@ -1,9 +1,8 @@
 ![syno.plexupdate logo](./images/Syno.PLEX%20logo.png)
 
+### Automatically Update Plex Media Server on the Synology NAS platform
 
 # Description
-
-### Automatically Update Plex Media Server on the Synology NAS platform
 
 This script takes into account many if not all of the issues I have previously read about for automatically updating Plex on the Synology NAS platform. This is a heavily-modified/overhauled version of the "[martinorob/plexupdate](https://github.com/martinorob/plexupdate)" script, with the specific intent to simplify its use to not require any Bash script variable editing or SSH access to the Synology NAS. This script originally started as a simple fork, but over the generations has turned into a wholly different script aside from the core task of updating Plex Media Server. The "fork" has been officially discontinued because it no longer resembles the original script, and has different support requirements.
 
