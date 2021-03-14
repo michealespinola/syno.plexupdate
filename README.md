@@ -1,3 +1,6 @@
+![syno.plexupdater logo](./images/Syno.PLEX logo 790px.png)
+
+
 # Description
 
 ### Automatically Update Plex Media Server on the Synology NAS platform
