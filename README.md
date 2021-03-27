@@ -94,27 +94,82 @@ The '`changelog.txt`' file is a historical changelog only for updates installed 
 
 # Example Output
 
-    SYNO.PLEX UPDATER SCRIPT v2.9.9.2
-    
-           Script: syno.plexupdate.sh v2.9.9.2
-       Script Dir: /volume1/homes/admin/scripts/bash/plex/syno.plexupdate
-      Running Ver: 2.9.9.2
-       Online Ver: 2.3.3
-         Released: 2020-09-06 06:34:14-07:00 (41+ days old)
-                 * No new version found.
-    
-         Synology: DS1019+ (x86_64), DSM 6.2.3-25426 Update 2
-         Plex Dir: /volume1/Plex/Library/Application Support/Plex Media Server
-       Plex Token: XXXXXXXXXXXXXXXXXXXX
-      Running Ver: 1.20.2.3402-0fec14d92
-       Online Ver: 1.20.3.3437-f1f08d65b (Public Channel)
-         Released: 2020-10-14 07:22:52-07:00 (3+ days old)
-                 * Newer version found!
-    
-      New Package: PlexMediaServer-1.20.3.3437-f1f08d65b-x86_64.spk
-      Package Age: 3+ days old (7+ required for install)
-    
-     Update newer than 7 days - skipping...
+    Dear user,
+
+    Task Scheduler has completed a scheduled task.
+
+    Task: Syno.PlexUpdater
+    Start time: Thu, 25 Mar 2021 02:05:36 GMT
+    Stop time: Thu, 25 Mar 2021 02:06:21 GMT
+    Current status: 1 (Interrupted)
+    Standard output/error:
+
+    SYNO.PLEX UPDATER SCRIPT v3.0.0
+
+             Script: syno.plexupdate.sh v3.0.0
+         Script Dir: /volume1/homes/admin/scripts/bash/plex/syno.plexupdate
+        Running Ver: 3.0.0
+                     * No new version found.
+
+           Synology: DS1019+ (x86_64), DSM 6.2.4-25556 Update 0
+           Plex Dir: /volume1/Plex/Library/Application Support/Plex Media Server
+         Plex Token: ####################
+        Running Ver: 1.22.0.4163-d8c4875dd
+         Online Ver: 1.22.1.4228-724c56e62 (Public Channel)
+           Released: 2021-03-23 05:41:44-07:00 (1+ days old)
+                     * Newer version found!
+
+        New Package: PlexMediaServer-1.22.1.4228-724c56e62-x86_64_DSM6.spk
+        Package Age: 1+ days old (0+ required for install)
+
+    INSTALLING NEW PACKAGE:
+    ----------------------------------------
+    2021-03-25 02:05:40 URL:https://downloads.plex.tv/plex-media-server-new/1.22.1.4228-724c56e62/synology/PlexMediaServer-1.22.1.4228-724c56e62-x86_64_DSM6.spk [116664320/116664320] -> "/volume1/homes/admin/scripts/bash/plex/syno.plexupdate/Archive/Packages/PlexMediaServer-1.22.1.4228-724c56e62-x86_64_DSM6.spk" [1]
+    package Plex Media Server stop successfully
+
+    /volume1/homes/admin/scripts/bash/plex/syno.plexupdate/Archive/Packages/PlexMediaServer-1.22.1.4228-724c56e62-x86_64_DSM6.spk install successfully
+
+    package Plex Media Server start successfully
+    ----------------------------------------
+
+        Update from: 1.22.0.4163-d8c4875dd
+                 to: 1.22.1.4228-724c56e62 succeeded!
+
+    NEW FEATURES:
+    ----------------------------------------
+    * (Library) Improved search handling of non-Latin scripts (#7896)
+    * (Library) Improved search handling of punctuation (#7833)
+    * (Web) Updated to 4.52.2
+    * (Web) Updated to 4.53.0
+    * Updated Translations.
+    ----------------------------------------
+
+    FIXED FEATURES:
+    ----------------------------------------
+    * (Butler) The scheduled job to refresh local metadata could use a lot or memory.
+    * (Gaming) Allow h/w encoding for parallel N64 core.
+    * (Gaming) Fix for games not saving state on Windows.
+    * (Gaming) Move to using nearest neighbor scaling for sharper rendering.
+    * (Gaming) OpenGL v2 and v3 rendering pipelines.
+    * (Gaming) Use passed in display dimensions to render at a higher resolution.
+    * (Library) Artist genres were not being set for FLAC files.
+    * (Library) Don't expose genre radio if user has "none" selected for genre source.
+    * (Library) Ensure shuffle doesn't bias towards single-track artists.
+    * (Library) Old lyrics weren't being removed, which could result in errors displaying lyrics.
+    * (Library) TV intro detection would run unconditionally for users without a Plex Pass using the beta TV agent.
+    * (Metadata) On rare occasions, refreshing a movie item may remove reviews and extras (#12428)
+    * (Statistics) Don't store duplicate records in the statistics tables
+    * (Transcoder) Short backwards seeks could fail in DASH transcodes under some circumstances (#11824)
+    * Added Slovak and Slovenian translations.
+    * Crash returning active playback sessions.
+    * Episodes with air date and no episode number could play out of order.
+    * The server could fail to start up on some ARM systems (#12513)
+    * Tightened cross-origin request security restrictions (#7712)
+    ----------------------------------------
+
+
+
+    From SYNOLOGY
 
 # Known Non-Issues
 
