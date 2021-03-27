@@ -98,7 +98,7 @@ The '`changelog.txt`' file is a historical changelog only for updates installed 
 
     Task Scheduler has completed a scheduled task.
 
-    Task: Syno.PlexUpdate
+    Task: Syno.Plex Update
     Start time: Thu, 25 Mar 2021 02:05:36 GMT
     Stop time: Thu, 25 Mar 2021 02:06:21 GMT
     Current status: 1 (Interrupted)
