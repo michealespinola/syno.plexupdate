@@ -28,7 +28,7 @@ Download the script and place it into a location of your choosing. As an example
 
     /homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
     
-**Note:** Synology recommends that you disable the default "`admin`" account for security reasons. In these examples, the admin directory structure this is just a script storage location. You can run the script from here even if you disable the "`admin`" account.
+**Note:** Synology recommends that you disable the default "`admin`" account for security reasons. In these examples, the admin directory structure is just a script storage location. You can run the script from here even if you disable the "`admin`" account.
 
 ### 2. Add the Plex 'Public Key Certificate' in the DSM
 
