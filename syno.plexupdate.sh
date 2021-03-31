@@ -6,32 +6,16 @@
 # Author @michealespinola https://github.com/michealespinola/syno.plexupdate
 #
 # Update concept via https://github.com/martinorob/plexupdate/
-# Getopt example via https://www.shellscript.sh/tips/getopt/
 #
 # Example Task 'user-defined script': 
 # bash /volume1/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
 
-# USER CONFIGURABLE VARIABLES #############################
-###########################################################
-
-# A NEW UPDATE MUST BE THIS MANY DAYS OLD
-MinimumAge=7
-# PREVIOUSLY DOWNLOADED PACKAGES DELETED IF OLDER THAN THIS MANY DAYS
-OldUpdates=60
-# NETWORK TIMEOUT IN SECONDS (900s = 15m)
-NetTimeout=900
-# SCRIPT WILL SELF-UPDATE IF SET TO 1
-SelfUpdate=0
-
-# NOTHING WORTH MESSING WITH BELOW HERE ###################
-###########################################################
-
 # SCRIPT VERSION
-SPUScrpVer=2.9.9.3
+SPUScrpVer=3.0.0
 MinDSMVers=6.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
-printf "%s\n" "SYNO.PLEX UPDATER SCRIPT v$SPUScrpVer"
+printf "%s\n" "SYNO.PLEX UPDATE SCRIPT v$SPUScrpVer"
 printf "\n"
 
 # CHECK IF ROOT
@@ -46,6 +30,23 @@ fi
 SPUSFllPth=$(readlink -f "$0")
 SPUSFolder=$(dirname "$SPUSFllPth")
 SPUSFileNm=${SPUSFllPth##*/}
+
+#CHECK IF CONFIG FILE EXISTS, IF NOT CREATE IT
+if [ ! -f "$SPUSFolder/config.ini" ]; then
+  printf " %s\n\n" "* CONFIGURATION FILE (config.ini) IS MISSING, CREATING DEFAULT SETUP..."
+  printf "%s\n"    "# A NEW UPDATE MUST BE THIS MANY DAYS OLD"                              >  "$SPUSFolder/config.ini"
+  printf "%s\n"    "MinimumAge=7"                                                           >> "$SPUSFolder/config.ini"
+  printf "%s\n"    "# PREVIOUSLY DOWNLOADED PACKAGES DELETED IF OLDER THAN THIS MANY DAYS"  >> "$SPUSFolder/config.ini"
+  printf "%s\n"    "OldUpdates=60"                                                          >> "$SPUSFolder/config.ini"
+  printf "%s\n"    "# NETWORK TIMEOUT IN SECONDS (900s = 15m)"                              >> "$SPUSFolder/config.ini"
+  printf "%s\n"    "NetTimeout=900"                                                         >> "$SPUSFolder/config.ini"
+  printf "%s\n"    "# SCRIPT WILL SELF-UPDATE IF SET TO 1"                                  >> "$SPUSFolder/config.ini"
+  printf "%s\n"    "SelfUpdate=0"                                                           >> "$SPUSFolder/config.ini"
+  ExitStatus=1
+fi
+if [ -f "$SPUSFolder/config.ini" ]; then
+  . "$SPUSFolder/config.ini"
+fi
 
 #CHECK IF SCRIPT IS ARCHIVED
 if [ ! -d "$SPUSFolder/Archive/Scripts" ]; then
@@ -66,7 +67,7 @@ TodaysDate=$(date --date "now" +'%s')
 # SCRAPE GITHUB FOR UPDATE INFO
 SPUSRelHtm=$(curl -m $NetTimeout -L -s https://github.com/michealespinola/syno.plexupdate/releases/latest)
 if [ "$?" -eq "0" ]; then
-  SPUSZipLnk=https://github.com/$(echo $SPUSRelHtm | grep -oP 'michealespinola\/syno.plexupdate\/archive\/v\d{1,}\.\d{1,}\.\d{1,}\.zip')
+  SPUSZipLnk=https://github.com/$(echo $SPUSRelHtm | grep -oP '\<title\>Release v\d{1,}\.\d{1,}(\.\d{1,})?(\.\d{1,})?')
   SPUSZipFil=${SPUSZipLnk##*/}
   SPUSZipVer=$(echo $SPUSZipFil | grep -oP '\d{1,}\.\d{1,}\.\d{1,}')
   SPUSGtDate=$(echo $SPUSRelHtm | grep -oP 'relative-time datetime="\K[^"]+')
@@ -74,8 +75,7 @@ if [ "$?" -eq "0" ]; then
   SPUSRelAge=$((($TodaysDate-$SPUSRlDate)/86400))
   SPUSDwnUrl=https://raw.githubusercontent.com/michealespinola/syno.plexupdate/v$SPUSZipVer/syno.plexupdate.sh
 else
-  printf " %s\n" "* UNABLE TO CHECK FOR LATEST VERSION OF SCRIPT..."
-  printf "\n"
+  printf " %s\n\n" "* UNABLE TO CHECK FOR LATEST VERSION OF SCRIPT..."
   ExitStatus=1
 fi
 
@@ -108,16 +108,16 @@ if [ "$?" -eq "0" ]; then
         printf "%s\n" "----------------------------------------"
         cmp -s "$SPUSFolder/Archive/Scripts/$SPUSFileNm.cmp" "$SPUSFolder/$SPUSFileNm"
         if [ "$?" -eq "0" ]; then
-          printf "             %s\n" "* Script update succeeded!"
+          printf "                 %s\n" "* Script update succeeded!"
           /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update completed successfully"}'
           ExitStatus=1
         else
-          printf "             %s\n" "* Script update failed to overwrite."
+          printf "                 %s\n" "* Script update failed to overwrite."
           /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update failed."}'
           ExitStatus=1
         fi
       else
-        printf "             %s\n" "* Script update failed to download."
+        printf "                 %s\n" "* Script update failed to download."
         /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update failed to download."}'
         ExitStatus=1
       fi
@@ -129,7 +129,7 @@ if [ "$?" -eq "0" ]; then
   fi
 
 else
-  printf "             %s\n" "* No new version found."
+  printf "                 %s\n" "* No new version found."
 fi
 printf "\n"
 
@@ -220,6 +220,7 @@ fi
 grep -q         "Version $NewVersion ($(date --rfc-3339 seconds --date @$NewVerDate))"    "$SPUSFolder/Archive/Packages/changelog.txt" 2>/dev/null
 if [ "$?" -ne "0" ]; then
   printf "%s\n" "Version $NewVersion ($(date --rfc-3339 seconds --date @$NewVerDate))" >  "$SPUSFolder/Archive/Packages/changelog.new"
+  printf "%s\n" "$ChannlName Channel"                                                  >> "$SPUSFolder/Archive/Packages/changelog.new"
   printf "%s\n" ""                                                                     >> "$SPUSFolder/Archive/Packages/changelog.new"
   printf "%s\n" "New Features:"                                                        >> "$SPUSFolder/Archive/Packages/changelog.new"
   printf "%s\n" "$NewVerAddd" | awk '{ print "* " $0 }'                                >> "$SPUSFolder/Archive/Packages/changelog.new"
@@ -253,7 +254,7 @@ fi
 # COMPARE PLEX VERSIONS
 /usr/bin/dpkg --compare-versions "$NewVersion" gt "$RunVersion"
 if [ "$?" -eq "0" ]; then
-  printf "             %s\n" "* Newer version found!"
+  printf "                 %s\n" "* Newer version found!"
   printf "\n"
   printf "%16s %s\n"      "New Package:" "$NewPackage"
   printf "%16s %s\n"      "Package Age:" "$PackageAge+ days old ($MinimumAge+ required for install)"
@@ -310,7 +311,7 @@ if [ "$?" -eq "0" ]; then
     printf " %s\n" "Update newer than $MinimumAge days - skipping..."
   fi
 else
-  printf "             %s\n" "* No new version found."
+  printf "                 %s\n" "* No new version found."
 fi
   printf "\n"
 # EXIT NORMALLY BUT POSSIBLY WITH FORCED EXIT STATUS FOR SCRIPT NOTIFICATIONS
