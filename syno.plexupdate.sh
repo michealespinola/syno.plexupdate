@@ -11,7 +11,7 @@
 # bash /volume1/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
 
 # SCRIPT VERSION
-SPUScrpVer=3.0.1
+SPUScrpVer=3.0.2
 MinDSMVers=6.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -158,6 +158,8 @@ fi
 
 # SCRAPE CURRENTLY RUNNING PMS VERSION
 RunVersion=$(/usr/syno/bin/synopkg version "Plex Media Server")
+RunVersion=$(echo $RunVersion | grep -oP '^.+?(?=\-)')
+
 # SCRAPE PMS FOLDER LOCATION AND CREATE ARCHIVED PACKAGES DIR W/OLD FILE CLEANUP
 PlexFolder=$(echo $PlexFolder | /usr/syno/bin/synopkg log "Plex Media Server")
 PlexFolder=$(echo ${PlexFolder%/Logs/Plex Media Server.log})
@@ -204,6 +206,7 @@ fi
 DistroJson=$(curl -m $NetTimeout -L -s $ChannelUrl)
 if [ "$?" -eq "0" ]; then
   NewVersion=$(echo $DistroJson | jq                                -r '.nas.Synology.version')
+  NewVersion=$(echo $NewVersion | grep -oP '^.+?(?=\-)')
   NewVerDate=$(echo $DistroJson | jq                                -r '.nas.Synology.release_date')
   NewVerAddd=$(echo $DistroJson | jq                                -r '.nas.Synology.items_added')
   NewVerFixd=$(echo $DistroJson | jq                                -r '.nas.Synology.items_fixed')
