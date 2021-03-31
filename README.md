@@ -1,6 +1,8 @@
 ![syno.plexupdate logo](./images/Syno.PLEX%20logo.png)
 
-[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=2RYY4BETEQAJC)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/michealespinola/syno.plexupdate)
+![GitHub top language](https://img.shields.io/github/languages/top/michealespinola/syno.plexupdate)
+![GitHub](https://img.shields.io/github/license/michealespinola/syno.plexupdate)
 
 ### Automatically Update Plex Media Server on the Synology NAS platform
 
@@ -211,3 +213,5 @@ Many thanks to:
 1. [ChuckPa](https://forums.plex.tv/u/ChuckPa) and [trumpy81](https://forums.plex.tv/u/trumpy81) at Plex for being kind and encouraging to this endeavour
 1. [Kynch](https://forums.plex.tv/u/Kynch) for the idea of self-updating the script
 1. [SunMar](https://forums.plex.tv/u/SunMar) for the idea of a changelog
+
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=2RYY4BETEQAJC)
