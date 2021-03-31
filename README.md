@@ -185,7 +185,7 @@ The '`changelog.txt`' file is a historical changelog only for updates installed 
 
 # Default Settings (config.ini)
 
-The script has (4) default but user-configurable variables:
+The script utilizes (4) default but user-configurable variables:
 
 1. `MinimumAge=7`
    * A **7**-day age requirement for installing the latest version as a bug/issue deterrent
@@ -195,8 +195,6 @@ The script has (4) default but user-configurable variables:
    * A **900**-second (15 minute) network timeout for hung network connections
 1. `SelfUpdate=0`
    * A 0=off 1=on toggle to enable self-updating to the latest packaged release. Change this to **1** to enable self-updating that follows the same minimum age requirement as the Plex updates
-
-These numerical values are located near the top of the script and can be modified. They are listed in this "To Do" section because they will soon be codified as parameter values. This script (eventually) intends to never have to modify the base script for anything along with not requiring SSH access.
 
 # Known Non-Issues
 
