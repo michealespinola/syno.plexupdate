@@ -3,6 +3,8 @@
 ![GitHub](https://img.shields.io/github/license/michealespinola/syno.plexupdate)
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=2RYY4BETEQAJC)
 
+ 
+ 
 ![syno.plexupdate logo](./images/Syno.PLEX%20logo.png)
 
 ### Automatically Update Plex Media Server on the Synology NAS platform
