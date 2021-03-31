@@ -69,7 +69,8 @@ Updates directly from Plex (which is what this script installs) are not installa
 1. Scrape JSON data to identify applicable updates specific to hardware architecture
 1. Compare currently running version information against latest online version
 1. If a new version exists and is older than the default 7-days - install the new version
-1. Check if the upgrade was successful, update local changelog if applicable, and send appropriate notifications
+1. Check if the upgrade was successful, update local changelog if applicable, and send appropriate notifications to the DSM and email (if configured for the DSM)
+   * Notifications are only sent when an upgrade installation takes place
 
 # Script Directory Structure
 
