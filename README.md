@@ -1,7 +1,3 @@
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/michealespinola/syno.plexupdate)
-![GitHub top language](https://img.shields.io/github/languages/top/michealespinola/syno.plexupdate)
-![GitHub](https://img.shields.io/github/license/michealespinola/syno.plexupdate)
-
 ![syno.plexupdate logo](./images/Syno.PLEX%20logo.png)
 
 [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=2RYY4BETEQAJC)
