@@ -11,7 +11,7 @@
 # bash /volume1/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
 
 # SCRIPT VERSION
-SPUScrpVer=3.0.0
+SPUScrpVer=3.0.1
 MinDSMVers=6.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -91,7 +91,7 @@ fi
 # COMPARE SCRIPT VERSIONS
 /usr/bin/dpkg --compare-versions "$SPUSZipVer" gt "$SPUScrpVer"
 if [ "$?" -eq "0" ]; then
-  printf "             %s\n" "* Newer version found!"
+  printf "                 %s\n" "* Newer version found!"
 
   # DOWNLOAD AND INSTALL THE SCRIPT UPDATE
   if [ "$SelfUpdate" -eq "1" ]; then
@@ -122,7 +122,7 @@ if [ "$?" -eq "0" ]; then
         ExitStatus=1
       fi
     else
-      printf " %s\n" "Update newer than $MinimumAge days - skipping..."
+      printf " \n%s\n" "Update newer than $MinimumAge days - skipping..."
     fi
     # DELETE TEMP COMPARISON FILE
     find "$SPUSFolder/Archive/Scripts" -type f -name "$SPUSFileNm.cmp" -delete
