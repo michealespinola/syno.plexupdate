@@ -1,4 +1,9 @@
 ![syno.plexupdate logo](./images/Syno.PLEX%20logo.png)
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=2RYY4BETEQAJC)
+
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/michealespinola/syno.plexupdate)
+![GitHub top language](https://img.shields.io/github/languages/top/michealespinola/syno.plexupdate)
+![GitHub](https://img.shields.io/github/license/michealespinola/syno.plexupdate)
 
 ### Automatically Update Plex Media Server on the Synology NAS platform
 
@@ -6,11 +11,11 @@
 
 This script takes into account many if not all of the issues I have previously read about for automatically updating Plex on the Synology NAS platform. This is a heavily-modified/overhauled version of the "[martinorob/plexupdate](https://github.com/martinorob/plexupdate)" script, with the specific intent to simplify its use to not require any Bash script variable editing or SSH access to the Synology NAS. This script originally started as a simple fork, but over the generations has turned into a wholly different script aside from the core task of updating Plex Media Server. The "fork" has been officially discontinued because it no longer resembles the original script, and has different support requirements.
 
-Everything you need to do to get this script running is accomplishable via the most basic DSM web administration by dropping this script onto the NAS and configuring a scheduled Task. This script is specifically for the update of the official Synology package of the Plex Media Server as released by Plex GmbH. This script utilizes Synology’s built-in tools to self-determine everything it needs to know about where Plex is located, how to update it, and to notify the system of updates or failures to the update process. If Plex is installed and properly configured, you will not have to edit this script for any details about the installation location of Plex. Public or Beta Update Channel update selection follows what you have configured in the Plex Media Server general settings.
+Everything you need to do to get this script running can be done with basic DSM web administration by dropping this script onto the NAS and configuring a scheduled Task. This script is specifically for the update of the official Synology package of the Plex Media Server as released by [Plex GmbH](https://www.plex.tv/). This script utilizes Synology’s built-in tools to self-determine everything it needs to know about where Plex is located, how to update it, and to notify the system of updates or failures to the update process. If Plex is installed and properly configured, you will not have to edit this script for any details about the installation location of Plex. Public or Beta update channel selection follows what you have configured in the Plex Media Server's 'General' settings section.
 
-Although only personally tested on my DS1019+, this script has been written with the intent to work on any compatible Synology platform. It reads your hardware architecture from the system and matches it against what is compatible with Plex. If its a part of the official Plex public or beta channel, this script will update it.
+Although only personally tested on my DS1019+, this script has been written to work on any compatible Synology platform using the built-in command-line utilities of the DSM. It reads your hardware architecture from the system and matches it against what is compatible with Plex. If its a part of the official Plex public or beta channel, this script will update it.
 
-The default yet modifiable settings are that the script will not install an update unless it is 7 days old. This is a stability safety-catch so that if a release has a bug, it is assumed it will be discovered and fixed within 7 days. Otherwise, it keeps previously downloaded/installed packages in its "Updates" directory for 60 days before automatic deletion.
+The default yet modifiable settings are that the script will not install an update unless it is 7+ days old. This is a stability safety-catch so that if a release has a bug, it is assumed it will be discovered and fixed within 7 days. It also keeps previously downloaded/installed packages in its "Updates" archive directory for 60 days before automatic deletion.
 
 # How-To Setup Example
 
@@ -23,14 +28,16 @@ Download the script and place it into a location of your choosing. As an example
 -or-
 
     /homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
+    
+**Note:** Synology recommends that you disable the default "`admin`" account for security reasons. In these examples, the admin directory structure this is just a script storage location. You can run the script from here even if you disable the "`admin`" account.
 
 ### 2. Add the Plex 'Public Key Certificate' in the DSM
 
-Updates directly from Plex (which is what this script installs) are not installable in the Synology DSM by default, because no 3rd-party applications are. To install updates directly from Plex, the DSM must be configured to allow other trusted application publishers. Plex's 'Public Key Certificate' must be installed to allow this safely without simply allowing any and all application publishers. The full instructions for this can be found on Plex's website here:
+Updates directly from Plex (which is what this script installs) are not installable in the Synology DSM by default - because no 3rd-party applications are. To install updates directly from Plex, the DSM must be configured to allow packages from other trusted application publishers. Plex's 'Public Key Certificate' must be installed to allow this safely without simply allowing any and all application publishers. The full instructions for this can be found on Plex's website here:
 
 > https://support.plex.tv/articles/205165858-how-to-add-plex-s-package-signing-public-key-to-synology-nas-package-center/
 
-1. Download the key from here: https://downloads.plex.tv/plex-keys/PlexSign.key
+1. Download the Plex 'Public Key Certificate' file from here: https://downloads.plex.tv/plex-keys/PlexSign.key
 1. Open the [DSM](https://www.synology.com/en-global/knowledgebase/DSM/help) web interface
 1. Open the [Package Center](https://www.synology.com/en-global/knowledgebase/DSM/help/DSM/PkgManApp/PackageCenter_desc)
    1. Click the General tab and change the Trust Level to "Synology Inc. and trusted publishers"
@@ -66,7 +73,7 @@ Updates directly from Plex (which is what this script installs) are not installa
 
 # Script Directory Structure
 
-The script will automatically create directories and files as needed in the following structure based off of the location of the script, as per this example:
+The script will automatically create directories and files as needed in the following directory structure based off of the location of the script, as per this example:
 
     /volume1/homes/admin/scripts/bash/plex/syno.plexupdate
     |   README.md
@@ -75,8 +82,12 @@ The script will automatically create directories and files as needed in the foll
     \---Archive
        +---Packages
        |       changelog.txt
-       |       PlexMediaServer-1.20.1.3252-a78fef9a9-x86_64.spk
-       |       PlexMediaServer-1.20.2.3402-0fec14d92-x86_64.spk
+       |       PlexMediaServer-1.21.3.4021-5a0a3e4b2-x86_64.spk
+       |       PlexMediaServer-1.21.3.4046-3c1c83ba4-x86_64.spk
+       |       PlexMediaServer-1.21.4.4079-1b7748a7b-x86_64.spk
+       |       PlexMediaServer-1.22.0.4163-d8c4875dd-x86_64.spk
+       |       PlexMediaServer-1.22.1.4228-724c56e62-x86_64_DSM6.spk
+       |       PlexMediaServer-1.22.2.4256-1e171f908-x86_64_DSM6.spk
        |       ...
        |
        \---Scripts
@@ -88,9 +99,9 @@ The script will automatically create directories and files as needed in the foll
                 syno.plexupdate.v2.9.9.2.sh
                 ...
 
-The Archive folder contains copies of Plex update Packages as well as copies of the update Scripts that are running. The script archive is not a mirror of what is on GitHub. The script archive is for version rollback purposes, and are a snapshot of your running copy of the script. If you make modifications to the script, the copy in the script archive will be updated accordingly.
+The Archive directory structure contains copies of update Packages as well as copies of the update Scripts that are running. The script archive is not a mirror of what is on GitHub. The script archive are a snapshot of running copies of the script. If you make modifications to the script, the copy in the script archive will be updated accordingly. The packages archive is similarly for manual rollback purposes.
 
-The '`changelog.txt`' file is a historical changelog only for updates installed by the script.
+The '`changelog.txt`' file is a historical changelog only for updates installed locally by the script. It will not contain any historical information for versions that were otherwised skipped by the script.
 
 # Example Output
 
@@ -109,6 +120,8 @@ The '`changelog.txt`' file is a historical changelog only for updates installed 
              Script: syno.plexupdate.sh v3.0.0
          Script Dir: /volume1/homes/admin/scripts/bash/plex/syno.plexupdate
         Running Ver: 3.0.0
+         Online Ver: 2.3.3
+           Released: 2020-09-06 06:34:14-07:00 (200+ days old)
                      * No new version found.
 
            Synology: DS1019+ (x86_64), DSM 6.2.4-25556 Update 0
@@ -171,15 +184,9 @@ The '`changelog.txt`' file is a historical changelog only for updates installed 
 
     From SYNOLOGY
 
-# Known Non-Issues
+# Default Settings (config.ini)
 
-* If the DSM is not configured to allow 3rd-party "trusted publishers", the script will log "`error = [289]`" during the package installation process. Synology DSM has been known to sporadically "lose" 3rd-party security certificates. If this happens, you will have to manually re-add it to your system.
-* If the script runs successfully, the DSM Task status will show "Interrupted (1)". This exit/error status of (1) is intentionally caused by the script in order to force the DSM to perform a notification of a successful update (in the form of an interruption/error). The DSM otherwise will not send notifications of successful Task executions.
-
-
-# To-Do
-
-The script currently has (4) hardcoded default but user-configurable variables:
+The script has (4) default but user-configurable variables:
 
 1. `MinimumAge=7`
    * A **7**-day age requirement for installing the latest version as a bug/issue deterrent
@@ -191,6 +198,12 @@ The script currently has (4) hardcoded default but user-configurable variables:
    * A 0=off 1=on toggle to enable self-updating to the latest packaged release. Change this to **1** to enable self-updating that follows the same minimum age requirement as the Plex updates
 
 These numerical values are located near the top of the script and can be modified. They are listed in this "To Do" section because they will soon be codified as parameter values. This script (eventually) intends to never have to modify the base script for anything along with not requiring SSH access.
+
+# Known Non-Issues
+
+* If the DSM is not configured to allow 3rd-party "trusted publishers", the script will log "`error = [289]`" during the package installation process. Synology DSM has been known to sporadically "lose" 3rd-party security certificates for unknown reasons. If this happens, you will have to re-add the Plex 'Public Key Certificate' to your system.
+* If the script runs successfully, the DSM Task status will show "`Interrupted (1)`" and the notification email will state "`Current status: 1 (Interrupted)`". This exit/error status of (1) is intentionally caused by the script in order to force the DSM to perform an email notification of a successful update (in the form of an interruption/error). The DSM otherwise would only send notifications of failed task events, and notifications of successful Plex updates would not be possible.
+
 
 # Thank You's
 
