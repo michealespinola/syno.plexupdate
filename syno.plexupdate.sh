@@ -7,7 +7,7 @@
 #
 # Update concept via https://github.com/martinorob/plexupdate/
 #
-# Example Task 'user-defined script': 
+# Example Task 'user-defined script':
 # bash /volume1/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
 
 # SCRIPT VERSION
@@ -110,7 +110,7 @@ if [ "$?" -eq "0" ]; then
         if [ "$?" -eq "0" ]; then
           printf "                 %s\n" "* Script update succeeded!"
           /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update completed successfully"}'
-          ExitStatus=1
+          ExitStatus=0
         else
           printf "                 %s\n" "* Script update failed to overwrite."
           /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update failed."}'
@@ -238,7 +238,7 @@ if [ "$?" -ne "0" ]; then
       mv    "$SPUSFolder/Archive/Packages/changelog.txt" "$SPUSFolder/Archive/Packages/changelog.tmp"
       cat   "$SPUSFolder/Archive/Packages/changelog.new" "$SPUSFolder/Archive/Packages/changelog.tmp" > "$SPUSFolder/Archive/Packages/changelog.txt"
     else
-      mv    "$SPUSFolder/Archive/Packages/changelog.new" "$SPUSFolder/Archive/Packages/changelog.txt"    
+      mv    "$SPUSFolder/Archive/Packages/changelog.new" "$SPUSFolder/Archive/Packages/changelog.txt"
     fi
   fi
 fi
