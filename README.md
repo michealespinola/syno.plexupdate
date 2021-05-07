@@ -19,6 +19,10 @@ Although only personally tested on my DS1019+, this script has been written to w
 
 The default yet modifiable settings are that the script will not install an update unless it is 7+ days old. This is a stability safety-catch so that if a release has a bug, it is assumed it will be discovered and fixed within 7 days. It also keeps previously downloaded/installed packages in its "Updates" archive directory for 60 days before automatic deletion.
 
+### Note about DSM 7 (beta)
+
+**This script does not support DSM 7 beta**. DSM 7 support will follow the public release that is speculated for the summer of 2021. Downgrades to DSM 6 are not possible from DSM 7.
+
 # How-To Setup Example
 
 ### 1. Save the Script to Your NAS
