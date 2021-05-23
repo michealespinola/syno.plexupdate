@@ -218,9 +218,8 @@ fi
 if [ "$DSMVersionM" -ge 7 ]; then
   SynoType="Synology (DSM 7)"
 else
-  SynoType='"Synology"'
+  SynoType="Synology"
 fi
-echo "SynoType is $SynoType"
 DistroJson=$(curl -m $NetTimeout -L -s $ChannelUrl)
 if [ "$?" -eq "0" ]; then
   NewVersion=$(echo $DistroJson | jq --arg SynoType "$SynoType"                                -r '.nas[] | select(.name == $SynoType) | .version')
