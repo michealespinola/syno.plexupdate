@@ -11,7 +11,7 @@
 # bash /volume1/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
 
 # SCRIPT VERSION
-SPUScrpVer=3.0.2
+SPUScrpVer=3.0.3
 MinDSMVers=6.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -138,30 +138,42 @@ SynoHModel=$(cat /proc/sys/kernel/syno_hw_version)
 # SCRAPE SYNOLOGY CPU ARCHITECTURE FAMILY
 ArchFamily=$(uname -m)
 # SCRAPE DSM VERSION AND CHECK COMPATIBILITY
-DSMVersion=$(                   cat /etc.defaults/VERSION | grep -i 'productversion=' | cut -d"\"" -f 2)
+DSMVersionP=$(                   cat /etc.defaults/VERSION | grep -i 'productversion=' | cut -d"\"" -f 2)
+DSMVersionM=$(                     cat /etc.defaults/VERSION | grep -i 'majorversion=' | cut -d"\"" -f 2)
+# CHECK IF DSM 7
+if [ "$DSMVersionM" -ge 7 ]; then
+  PackageName="PlexMediaServer"
+else
+  PackageName="Plex Media Server"
+fi
 # CHECK IF X86 MODEL
+
 if [ "$SynoHModel" == "DS214Play" ] || [ "$SynoHModel" == "DS415Play" ]; then
   MinDSMVers=5.2
 fi
-/usr/bin/dpkg --compare-versions "$MinDSMVers" gt "$DSMVersion"
+/usr/bin/dpkg --compare-versions "$MinDSMVers" gt "$DSMVersionP"
 if [ "$?" -eq "0" ]; then
   printf " %s\n" "* Plex Media Server for $SynoHModel requires DSM $MinDSMVers minimum to install - exiting..."
   /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server\n\nSyno.Plex Update task failed. DSM not sufficient version."}'
   printf "\n"
   exit 1
 fi
-DSMVersion=$(echo $DSMVersion-$(cat /etc.defaults/VERSION | grep -i 'buildnumber='    | cut -d"\"" -f 2))
+DSMVersionP=$(echo $DSMVersionP-$(cat /etc.defaults/VERSION | grep -i 'buildnumber='    | cut -d"\"" -f 2))
 DSMUpdateV=$(                   cat /etc.defaults/VERSION | grep -i 'smallfixnumber=' | cut -d"\"" -f 2)
 if [ -n "$DSMUpdateV" ]; then
-  DSMVersion=$(echo $DSMVersion Update $DSMUpdateV)
+  DSMVersionP=$(echo $DSMVersionP Update $DSMUpdateV)
 fi
 
 # SCRAPE CURRENTLY RUNNING PMS VERSION
-RunVersion=$(/usr/syno/bin/synopkg version "Plex Media Server")
+RunVersion=$(/usr/syno/bin/synopkg version "$PackageName")
 RunVersion=$(echo $RunVersion | grep -oP '^.+?(?=\-)')
 
 # SCRAPE PMS FOLDER LOCATION AND CREATE ARCHIVED PACKAGES DIR W/OLD FILE CLEANUP
-PlexFolder=$(echo $PlexFolder | /usr/syno/bin/synopkg log "Plex Media Server")
+if [ "$DSMVersionM" -ge 7 ]; then
+  PlexFolder=$(readlink -f "/var/packages/PlexMediaServer/home/")"/Plex Media Server"
+else
+  PlexFolder=$(echo $PlexFolder | /usr/syno/bin/synopkg log "$PackageName")
+fi
 PlexFolder=$(echo ${PlexFolder%/Logs/Plex Media Server.log})
 PlexFolder=/$(echo ${PlexFolder#*/})
 if [ -d "$PlexFolder/Updates" ]; then
@@ -203,14 +215,21 @@ else
 fi
 
 # SCRAPE PLEX FOR UPDATE INFO
+if [ "$DSMVersionM" -ge 7 ]; then
+  SynoType="Synology (DSM 7)"
+else
+  SynoType='"Synology"'
+fi
+echo "SynoType is $SynoType"
 DistroJson=$(curl -m $NetTimeout -L -s $ChannelUrl)
 if [ "$?" -eq "0" ]; then
-  NewVersion=$(echo $DistroJson | jq                                -r '.nas.Synology.version')
+  NewVersion=$(echo $DistroJson | jq --arg SynoType "$SynoType"                                -r '.nas[] | select(.name == $SynoType) | .version')
   NewVersion=$(echo $NewVersion | grep -oP '^.+?(?=\-)')
-  NewVerDate=$(echo $DistroJson | jq                                -r '.nas.Synology.release_date')
-  NewVerAddd=$(echo $DistroJson | jq                                -r '.nas.Synology.items_added')
-  NewVerFixd=$(echo $DistroJson | jq                                -r '.nas.Synology.items_fixed')
-  NewDwnlUrl=$(echo $DistroJson | jq --arg ArchFamily "$ArchFamily" -r '.nas.Synology.releases[] | select(.build == "linux-"+$ArchFamily) | .url'); NewPackage="${NewDwnlUrl##*/}"
+  NewVerDate=$(echo $DistroJson | jq --arg SynoType "$SynoType"                                -r '.nas[] | select(.name == $SynoType) | .release_date')
+  NewVerAddd=$(echo $DistroJson | jq --arg SynoType "$SynoType"                                -r '.nas[] | select(.name == $SynoType) | .items_added')
+  NewVerFixd=$(echo $DistroJson | jq --arg SynoType "$SynoType"                                -r '.nas[] | select(.name == $SynoType) | .items_fixed')
+  NewDwnlUrl=$(echo $DistroJson | jq --arg ArchFamily "$ArchFamily" --arg SynoType "$SynoType" -r '.nas[] | select(.name == $SynoType) | .releases[] | select(.build == "linux-"+$ArchFamily) | .url'); NewPackage="${NewDwnlUrl##*/}"
+
   # CALCULATE NEW PACKAGE AGE FROM RELEASE DATE
   PackageAge=$((($TodaysDate-$NewVerDate)/86400))
 else
@@ -245,7 +264,7 @@ fi
 rm "$SPUSFolder/Archive/Packages/changelog.new" "$SPUSFolder/Archive/Packages/changelog.tmp" 2>/dev/null
 
 # PRINT PLEX STATUS/DEBUG INFO
-printf "%16s %s\n"         "Synology:" "$SynoHModel ($ArchFamily), DSM $DSMVersion"
+printf "%16s %s\n"         "Synology:" "$SynoHModel ($ArchFamily), DSM $DSMVersionP"
 printf "%16s %s\n"         "Plex Dir:" "$PlexFolder"
 printf "%16s %s\n"       "Plex Token:" "$PlexOToken"
 printf "%16s %s\n"      "Running Ver:" "$RunVersion"
