@@ -11,7 +11,7 @@
 # bash /volume1/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
 
 # SCRIPT VERSION
-SPUScrpVer=3.0.4
+SPUScrpVer=3.0.3
 MinDSMVers=6.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -218,9 +218,8 @@ fi
 if [ "$DSMVersionM" -ge 7 ]; then
   SynoType="Synology (DSM 7)"
 else
-  SynoType='"Synology"'
+  SynoType="Synology"
 fi
-echo "SynoType is $SynoType"
 DistroJson=$(curl -m $NetTimeout -L -s $ChannelUrl)
 if [ "$?" -eq "0" ]; then
   NewVersion=$(echo $DistroJson | jq --arg SynoType "$SynoType"                                -r '.nas[] | select(.name == $SynoType) | .version')
@@ -288,17 +287,17 @@ if [ "$?" -eq "0" ]; then
     printf "%s\n" "----------------------------------------"
     /bin/wget $NewDwnlUrl -nv -c -nc -P "$SPUSFolder/Archive/Packages/"
     if [ "$?" -eq "0" ]; then
-      /usr/syno/bin/synopkg stop    "$PackageName"
+      /usr/syno/bin/synopkg stop    "Plex Media Server"
       printf "\n"
       /usr/syno/bin/synopkg install "$SPUSFolder/Archive/Packages/$NewPackage"
       printf "\n"
-      /usr/syno/bin/synopkg start   "$PackageName"
+      /usr/syno/bin/synopkg start   "Plex Media Server"
     else
       printf "\n %s\n" "* Package download failed, skipping install..."
     fi
     printf "%s\n" "----------------------------------------"
     printf "\n"
-    NowVersion=$(/usr/syno/bin/synopkg version "$PackageName")
+    NowVersion=$(/usr/syno/bin/synopkg version "Plex Media Server")
     printf "%16s %s\n"      "Update from:" "$RunVersion"
     printf "%16s %s"                 "to:" "$NewVersion"
 
@@ -322,11 +321,11 @@ if [ "$?" -eq "0" ]; then
         printf "%s\n" "$NewVerFixd" | awk '{ print "* " $0 }'
         printf "%s\n" "----------------------------------------"
       fi
-      /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "$PackageName\n\nSyno.Plex Update task completed successfully"}'
+      /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server\n\nSyno.Plex Update task completed successfully"}'
       ExitStatus=1
     else
       printf " %s\n" "failed!"
-      /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "$PackageName\n\nSyno.Plex Update task failed. Installation not newer version."}'
+      /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server\n\nSyno.Plex Update task failed. Installation not newer version."}'
       ExitStatus=1
     fi
   else
