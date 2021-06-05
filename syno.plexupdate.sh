@@ -11,7 +11,7 @@
 # bash /volume1/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
 
 # SCRIPT VERSION
-SPUScrpVer=3.0.4
+SPUScrpVer=3.0.5
 MinDSMVers=6.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -297,7 +297,11 @@ if [ "$?" -eq "0" ]; then
     fi
     printf "%s\n" "----------------------------------------"
     printf "\n"
-    NowVersion=$(/usr/syno/bin/synopkg version "$PackageName")
+    if [ "$DSMVersionM" -ge 7 ]; then
+      NowVersion=$(/usr/syno/bin/synopkg version "$PackageName" | cut -d"-" -f 1)
+    else
+      NowVersion=$(/usr/syno/bin/synopkg version "$PackageName")
+    fi
     printf "%16s %s\n"      "Update from:" "$RunVersion"
     printf "%16s %s"                 "to:" "$NewVersion"
 
