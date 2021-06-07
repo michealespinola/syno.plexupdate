@@ -280,6 +280,7 @@ if [ "$?" -eq "0" ]; then
     printf "%s\n" "----------------------------------------"
     printf "\n"
     NowVersion=$(/usr/syno/bin/synopkg version "Plex Media Server")
+    NowVersion=$(echo $NowVersion | grep -oP '^.+?(?=\-)')
     printf "%16s %s\n"      "Update from:" "$RunVersion"
     printf "%16s %s"                 "to:" "$NewVersion"
 
