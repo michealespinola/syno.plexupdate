@@ -109,8 +109,7 @@ if [ "$?" -eq "0" ]; then
         cmp -s "$SPUSFolder/Archive/Scripts/$SPUSFileNm.cmp" "$SPUSFolder/$SPUSFileNm"
         if [ "$?" -eq "0" ]; then
           printf "                 %s\n" "* Script update succeeded!"
-          /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update completed successfully"}'
-          ExitStatus=1
+          /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update completed successfully."}'
         else
           printf "                 %s\n" "* Script update failed to overwrite."
           /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update failed."}'
@@ -268,24 +267,44 @@ if [ "$?" -eq "0" ]; then
     printf "%s\n" "INSTALLING NEW PACKAGE:"
     printf "%s\n" "----------------------------------------"
     /bin/wget $NewDwnlUrl -nv -c -nc -P "$SPUSFolder/Archive/Packages/"
+    PlexUpdated=0
+    PlexPostUpdateFailed=0
     if [ "$?" -eq "0" ]; then
       /usr/syno/bin/synopkg stop    "Plex Media Server"
       printf "\n"
       /usr/syno/bin/synopkg install "$SPUSFolder/Archive/Packages/$NewPackage"
       printf "\n"
+      NowVersion=$(/usr/syno/bin/synopkg version "Plex Media Server")
+      NowVersion=$(echo $NowVersion | grep -oP '^.+?(?=\-)')
+      /usr/bin/dpkg --compare-versions "$NowVersion" gt "$RunVersion"
+      if [ "$?" -eq "0" ]; then
+        PlexUpdated=1
+
+        if [ ! -z "$PostUpdateScript" ]; then
+          printf "%s\n" "Running post update script: $PostUpdateScript"
+          printf "\n"
+
+          eval "$PostUpdateScript"
+
+          if [ "$?" -ne "0" ]; then
+            PlexPostUpdateFailed=1
+            ExitStatus=1
+          fi
+
+          printf "\n"
+        fi
+      fi
       /usr/syno/bin/synopkg start   "Plex Media Server"
     else
       printf "\n %s\n" "* Package download failed, skipping install..."
     fi
     printf "%s\n" "----------------------------------------"
     printf "\n"
-    NowVersion=$(/usr/syno/bin/synopkg version "Plex Media Server")
     printf "%16s %s\n"      "Update from:" "$RunVersion"
     printf "%16s %s"                 "to:" "$NewVersion"
 
     # REPORT PLEX UPDATE STATUS
-    /usr/bin/dpkg --compare-versions "$NowVersion" gt "$RunVersion"
-    if [ "$?" -eq "0" ]; then
+    if [ "$PlexUpdated" -eq "1" ]; then
       printf " %s\n" "succeeded!"
       printf "\n"
       if [ ! -z "$NewVerAddd" ]; then
@@ -303,8 +322,11 @@ if [ "$?" -eq "0" ]; then
         printf "%s\n" "$NewVerFixd" | awk '{ print "* " $0 }'
         printf "%s\n" "----------------------------------------"
       fi
-      /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server\n\nSyno.Plex Update task completed successfully"}'
-      ExitStatus=1
+      if [ "$PlexPostUpdateFailed" -eq "0" ]; then
+        /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server\n\nSyno.Plex Update task completed successfully."}'
+      else
+        /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server\n\nSyno.Plex Update task completed successfully but post update failed."}'
+      fi
     else
       printf " %s\n" "failed!"
       /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server\n\nSyno.Plex Update task failed. Installation not newer version."}'
@@ -316,6 +338,6 @@ if [ "$?" -eq "0" ]; then
 else
   printf "                 %s\n" "* No new version found."
 fi
-  printf "\n"
+printf "\n"
 # EXIT NORMALLY BUT POSSIBLY WITH FORCED EXIT STATUS FOR SCRIPT NOTIFICATIONS
 exit $ExitStatus
