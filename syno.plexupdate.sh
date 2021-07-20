@@ -11,7 +11,7 @@
 # bash /volume1/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
 
 # SCRIPT VERSION
-SPUScrpVer=3.0.5
+SPUScrpVer=3.0.6
 MinDSMVers=6.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -291,6 +291,7 @@ if [ "$?" -eq "0" ]; then
       printf "\n"
       /usr/syno/bin/synopkg install "$SPUSFolder/Archive/Packages/$NewPackage"
       printf "\n"
+      sleep 10
       /usr/syno/bin/synopkg start   "$PackageName"
     else
       printf "\n %s\n" "* Package download failed, skipping install..."
