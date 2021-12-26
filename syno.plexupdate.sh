@@ -11,7 +11,7 @@
 # bash /volume1/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
 
 # SCRIPT VERSION
-SPUScrpVer=3.0.6
+SPUScrpVer=3.0.7
 MinDSMVers=6.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -170,7 +170,7 @@ RunVersion=$(echo $RunVersion | grep -oP '^.+?(?=\-)')
 
 # SCRAPE PMS FOLDER LOCATION AND CREATE ARCHIVED PACKAGES DIR W/OLD FILE CLEANUP
 if [ "$DSMVersionM" -ge 7 ]; then
-  PlexFolder=$(readlink -f "/var/packages/PlexMediaServer/home/")"/Plex Media Server"
+  PlexFolder=$(readlink -f "/var/packages/PlexMediaServer/shares/PlexMediaServer")"/AppData/Plex Media Server"
 else
   PlexFolder=$(echo $PlexFolder | /usr/syno/bin/synopkg log "$PackageName")
 fi
@@ -327,7 +327,7 @@ if [ "$?" -eq "0" ]; then
         printf "%s\n" "----------------------------------------"
       fi
       /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "$PackageName\n\nSyno.Plex Update task completed successfully"}'
-      ExitStatus=1
+      ExitStatus=0
     else
       printf " %s\n" "failed!"
       /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "$PackageName\n\nSyno.Plex Update task failed. Installation not newer version."}'
