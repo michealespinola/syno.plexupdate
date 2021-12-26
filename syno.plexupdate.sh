@@ -147,7 +147,6 @@ else
   PackageName="Plex Media Server"
 fi
 # CHECK IF X86 MODEL
-
 if [ "$SynoHModel" == "DS214Play" ] || [ "$SynoHModel" == "DS415Play" ]; then
   MinDSMVers=5.2
 fi
