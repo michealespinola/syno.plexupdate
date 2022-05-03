@@ -19,9 +19,9 @@ Although only personally tested on my DS1019+, this script has been written to w
 
 The default yet modifiable settings are that the script will not install an update unless it is 7+ days old. This is a stability safety-catch so that if a release has a bug, it is assumed it will be discovered and fixed within 7 days. It also keeps previously downloaded/installed packages in its "Updates" archive directory for 60 days before automatic deletion.
 
-### Note about DSM 7 (beta)
+### DSM 6 and DSM 7 Support Notes
 
-**This script does not support DSM 7 beta**. DSM 7 support will follow the public release that is speculated for the summer of 2021. Downgrades to DSM 6 are not possible from DSM 7.
+DSM 7 is officially supported starting from v4.0.0. DSM 6 support culminates with the v3.x.x series. Dual support may be considered in the future, but it is not at this time while the code is optimized and stablized for DSM 7, and after some new features are implimented.
 
 # How-To Setup Example
 
