@@ -5,14 +5,14 @@
 #
 # Author @michealespinola https://github.com/michealespinola/syno.plexupdate
 #
-# Update concept via https://github.com/martinorob/plexupdate/
+# Original update concept based on: https://github.com/martinorob/plexupdate/
 #
 # Example Task 'user-defined script': 
 # bash /volume1/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
 
 # SCRIPT VERSION
-SPUScrpVer=3.0.2
-MinDSMVers=6.0
+SPUScrpVer=4.0.0
+MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
 printf "%s\n" "SYNO.PLEX UPDATE SCRIPT v$SPUScrpVer"
@@ -27,7 +27,7 @@ if [ "$EUID" -ne "0" ]; then
 fi
 
 # SCRAPE SCRIPT PATH INFO
-SPUSFllPth=$(readlink -f "$0")
+SPUSFllPth=$(readlink -f "${BASH_SOURCE[0]}")
 SPUSFolder=$(dirname "$SPUSFllPth")
 SPUSFileNm=${SPUSFllPth##*/}
 
@@ -139,13 +139,10 @@ SynoHModel=$(cat /proc/sys/kernel/syno_hw_version)
 ArchFamily=$(uname -m)
 # SCRAPE DSM VERSION AND CHECK COMPATIBILITY
 DSMVersion=$(                   cat /etc.defaults/VERSION | grep -i 'productversion=' | cut -d"\"" -f 2)
-# CHECK IF X86 MODEL
-if [ "$SynoHModel" == "DS214Play" ] || [ "$SynoHModel" == "DS415Play" ]; then
-  MinDSMVers=5.2
-fi
+# CHECK IF DSM 7
 /usr/bin/dpkg --compare-versions "$MinDSMVers" gt "$DSMVersion"
 if [ "$?" -eq "0" ]; then
-  printf " %s\n" "* Plex Media Server for $SynoHModel requires DSM $MinDSMVers minimum to install - exiting..."
+  printf " %s\n" "* Syno.Plex Update requires DSM $MinDSMVers minimum to install - exiting..."
   /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server\n\nSyno.Plex Update task failed. DSM not sufficient version."}'
   printf "\n"
   exit 1
@@ -157,13 +154,14 @@ if [ -n "$DSMUpdateV" ]; then
 fi
 
 # SCRAPE CURRENTLY RUNNING PMS VERSION
-RunVersion=$(/usr/syno/bin/synopkg version "Plex Media Server")
+RunVersion=$(/usr/syno/bin/synopkg version "PlexMediaServer")
 RunVersion=$(echo $RunVersion | grep -oP '^.+?(?=\-)')
 
 # SCRAPE PMS FOLDER LOCATION AND CREATE ARCHIVED PACKAGES DIR W/OLD FILE CLEANUP
-PlexFolder=$(echo $PlexFolder | /usr/syno/bin/synopkg log "Plex Media Server")
-PlexFolder=$(echo ${PlexFolder%/Logs/Plex Media Server.log})
-PlexFolder=/$(echo ${PlexFolder#*/})
+#lexFolder=$(realpath /var/packages/PlexMediaServer/shares/PlexMediaServer)
+PlexFolder=$(readlink /var/packages/PlexMediaServer/shares/PlexMediaServer)
+PlexFolder="${PlexFolder}/AppData/Plex Media Server"
+
 if [ -d "$PlexFolder/Updates" ]; then
   mv -f "$PlexFolder/Updates/"* "$SPUSFolder/Archive/Packages/" 2>/dev/null
   if [ -n "$(find "$PlexFolder/Updates/" -prune -empty) 2>/dev/null" ]; then
@@ -193,6 +191,7 @@ else
     # BETA SERVER UPDATE CHANNEL (REQUIRES PLEX PASS)
     ChannlName=Beta
     ChannelUrl=$(echo "https://plex.tv/api/downloads/5.json?channel=plexpass&X-Plex-Token=$PlexOToken")
+#   ChannelUrl=$(echo "https://plex.tv/downloads/latest/5.json?channel=plexpass&X-Plex-Token=$PlexOToken")
   else
     # REPORT ERROR IF UNRECOGNIZED CHANNEL SELECTION
     printf " %s\n" "Unable to indentify Server Update Channel (Public, Beta, etc) - exiting..."
@@ -210,7 +209,7 @@ if [ "$?" -eq "0" ]; then
   NewVerDate=$(echo $DistroJson | jq                                -r '.nas.Synology.release_date')
   NewVerAddd=$(echo $DistroJson | jq                                -r '.nas.Synology.items_added')
   NewVerFixd=$(echo $DistroJson | jq                                -r '.nas.Synology.items_fixed')
-  NewDwnlUrl=$(echo $DistroJson | jq --arg ArchFamily "$ArchFamily" -r '.nas.Synology.releases[] | select(.build == "linux-"+$ArchFamily) | .url'); NewPackage="${NewDwnlUrl##*/}"
+  NewDwnlUrl=$(echo $DistroJson | jq --arg ArchFamily "$ArchFamily" -r '.nas."Synology (DSM 7)".releases[] | select(.build == "linux-"+$ArchFamily) | .url'); NewPackage="${NewDwnlUrl##*/}"
   # CALCULATE NEW PACKAGE AGE FROM RELEASE DATE
   PackageAge=$((($TodaysDate-$NewVerDate)/86400))
 else
@@ -226,10 +225,10 @@ if [ "$?" -ne "0" ]; then
   printf "%s\n" "$ChannlName Channel"                                                  >> "$SPUSFolder/Archive/Packages/changelog.new"
   printf "%s\n" ""                                                                     >> "$SPUSFolder/Archive/Packages/changelog.new"
   printf "%s\n" "New Features:"                                                        >> "$SPUSFolder/Archive/Packages/changelog.new"
-  printf "%s\n" "$NewVerAddd" | awk '{ print "* " $0 }'                                >> "$SPUSFolder/Archive/Packages/changelog.new"
+  printf "%s\n" "$NewVerAddd" | awk '{ print "* " ${BASH_SOURCE[0]} }'                 >> "$SPUSFolder/Archive/Packages/changelog.new"
   printf "%s\n" ""                                                                     >> "$SPUSFolder/Archive/Packages/changelog.new"
   printf "%s\n" "Fixed Features:"                                                      >> "$SPUSFolder/Archive/Packages/changelog.new"
-  printf "%s\n" "$NewVerFixd" | awk '{ print "* " $0 }'                                >> "$SPUSFolder/Archive/Packages/changelog.new"
+  printf "%s\n" "$NewVerFixd" | awk '{ print "* " ${BASH_SOURCE[0]} }'                 >> "$SPUSFolder/Archive/Packages/changelog.new"
   printf "%s\n" ""                                                                     >> "$SPUSFolder/Archive/Packages/changelog.new"
   printf "%s\n" "----------------------------------------"                             >> "$SPUSFolder/Archive/Packages/changelog.new"
   printf "%s\n" ""                                                                     >> "$SPUSFolder/Archive/Packages/changelog.new"
@@ -247,7 +246,7 @@ rm "$SPUSFolder/Archive/Packages/changelog.new" "$SPUSFolder/Archive/Packages/ch
 # PRINT PLEX STATUS/DEBUG INFO
 printf "%16s %s\n"         "Synology:" "$SynoHModel ($ArchFamily), DSM $DSMVersion"
 printf "%16s %s\n"         "Plex Dir:" "$PlexFolder"
-printf "%16s %s\n"       "Plex Token:" "$PlexOToken"
+printf "%16s %s\n"       "Plex Token:" "$PlexOToken (NEVER POST OR SHARE THIS)"
 printf "%16s %s\n"      "Running Ver:" "$RunVersion"
 if [ "$NewVersion" != "" ]; then
   printf "%16s %s\n"     "Online Ver:" "$NewVersion ($ChannlName Channel)"
@@ -269,17 +268,17 @@ if [ "$?" -eq "0" ]; then
     printf "%s\n" "----------------------------------------"
     /bin/wget $NewDwnlUrl -nv -c -nc -P "$SPUSFolder/Archive/Packages/"
     if [ "$?" -eq "0" ]; then
-      /usr/syno/bin/synopkg stop    "Plex Media Server"
+      /usr/syno/bin/synopkg stop    "PlexMediaServer"
       printf "\n"
       /usr/syno/bin/synopkg install "$SPUSFolder/Archive/Packages/$NewPackage"
       printf "\n"
-      /usr/syno/bin/synopkg start   "Plex Media Server"
+      /usr/syno/bin/synopkg start   "PlexMediaServer"
     else
       printf "\n %s\n" "* Package download failed, skipping install..."
     fi
     printf "%s\n" "----------------------------------------"
     printf "\n"
-    NowVersion=$(/usr/syno/bin/synopkg version "Plex Media Server")
+    NowVersion=$(/usr/syno/bin/synopkg version "PlexMediaServer")
     printf "%16s %s\n"      "Update from:" "$RunVersion"
     printf "%16s %s"                 "to:" "$NewVersion"
 
@@ -292,7 +291,7 @@ if [ "$?" -eq "0" ]; then
         # SHOW NEW PLEX FEATURES
         printf "%s\n" "NEW FEATURES:"
         printf "%s\n" "----------------------------------------"
-        printf "%s\n" "$NewVerAddd" | awk '{ print "* " $0 }'
+        printf "%s\n" "$NewVerAddd" | awk '{ print "* " ${BASH_SOURCE[0]} }'
         printf "%s\n" "----------------------------------------"
       fi
       printf "\n"
@@ -300,7 +299,7 @@ if [ "$?" -eq "0" ]; then
         # SHOW FIXED PLEX FEATURES
         printf "%s\n" "FIXED FEATURES:"
         printf "%s\n" "----------------------------------------"
-        printf "%s\n" "$NewVerFixd" | awk '{ print "* " $0 }'
+        printf "%s\n" "$NewVerFixd" | awk '{ print "* " ${BASH_SOURCE[0]} }'
         printf "%s\n" "----------------------------------------"
       fi
       /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server\n\nSyno.Plex Update task completed successfully"}'
