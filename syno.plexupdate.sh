@@ -70,7 +70,7 @@ if [ "$?" -eq "0" ]; then
   SPUSZipLnk=https://github.com/$(echo $SPUSRelHtm | grep -oP '\<title\>Release v\d{1,}\.\d{1,}(\.\d{1,})?(\.\d{1,})?')
   SPUSZipFil=${SPUSZipLnk##*/}
   SPUSZipVer=$(echo $SPUSZipFil | grep -oP '\d{1,}\.\d{1,}\.\d{1,}')
-  SPUSGtDate=$(echo $SPUSRelHtm | grep -oP 'relative-time datetime="\K[^"]+')
+  SPUSGtDate=$(echo $SPUSRelHtm | grep -oP 'relative-time datetime="\K[^"]+' | head -1)
   SPUSRlDate=$(date --date "$SPUSGtDate" +'%s')
   SPUSRelAge=$((($TodaysDate-$SPUSRlDate)/86400))
   SPUSDwnUrl=https://raw.githubusercontent.com/michealespinola/syno.plexupdate/v$SPUSZipVer/syno.plexupdate.sh
