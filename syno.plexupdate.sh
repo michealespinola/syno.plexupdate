@@ -225,10 +225,10 @@ if [ "$?" -ne "0" ]; then
   printf "%s\n" "$ChannlName Channel"                                                  >> "$SPUSFolder/Archive/Packages/changelog.new"
   printf "%s\n" ""                                                                     >> "$SPUSFolder/Archive/Packages/changelog.new"
   printf "%s\n" "New Features:"                                                        >> "$SPUSFolder/Archive/Packages/changelog.new"
-  printf "%s\n" "$NewVerAddd" | awk '{ print "* " ${BASH_SOURCE[0]} }'                 >> "$SPUSFolder/Archive/Packages/changelog.new"
+  printf "%s\n" "$NewVerAddd" | awk '{ print "* " $0 }'                                >> "$SPUSFolder/Archive/Packages/changelog.new"
   printf "%s\n" ""                                                                     >> "$SPUSFolder/Archive/Packages/changelog.new"
   printf "%s\n" "Fixed Features:"                                                      >> "$SPUSFolder/Archive/Packages/changelog.new"
-  printf "%s\n" "$NewVerFixd" | awk '{ print "* " ${BASH_SOURCE[0]} }'                 >> "$SPUSFolder/Archive/Packages/changelog.new"
+  printf "%s\n" "$NewVerFixd" | awk '{ print "* " $0 }'                                >> "$SPUSFolder/Archive/Packages/changelog.new"
   printf "%s\n" ""                                                                     >> "$SPUSFolder/Archive/Packages/changelog.new"
   printf "%s\n" "----------------------------------------"                             >> "$SPUSFolder/Archive/Packages/changelog.new"
   printf "%s\n" ""                                                                     >> "$SPUSFolder/Archive/Packages/changelog.new"
@@ -291,7 +291,7 @@ if [ "$?" -eq "0" ]; then
         # SHOW NEW PLEX FEATURES
         printf "%s\n" "NEW FEATURES:"
         printf "%s\n" "----------------------------------------"
-        printf "%s\n" "$NewVerAddd" | awk '{ print "* " ${BASH_SOURCE[0]} }'
+        printf "%s\n" "$NewVerAddd" | awk '{ print "* " $0 }'
         printf "%s\n" "----------------------------------------"
       fi
       printf "\n"
@@ -299,11 +299,11 @@ if [ "$?" -eq "0" ]; then
         # SHOW FIXED PLEX FEATURES
         printf "%s\n" "FIXED FEATURES:"
         printf "%s\n" "----------------------------------------"
-        printf "%s\n" "$NewVerFixd" | awk '{ print "* " ${BASH_SOURCE[0]} }'
+        printf "%s\n" "$NewVerFixd" | awk '{ print "* " $0 }'
         printf "%s\n" "----------------------------------------"
       fi
       /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server\n\nSyno.Plex Update task completed successfully"}'
-      ExitStatus=1
+      ExitStatus=0
     else
       printf " %s\n" "failed!"
       /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server\n\nSyno.Plex Update task failed. Installation not newer version."}'
