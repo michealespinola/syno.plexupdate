@@ -11,11 +11,11 @@
 # bash /volume1/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
 
 # SCRIPT VERSION
-SPUScrpVer=4.0.0
+SPUScrpVer=4.0.1
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
-printf "%s\n" "SYNO.PLEX UPDATE SCRIPT v$SPUScrpVer"
+printf "%s\n" "SYNO.PLEX UPDATE SCRIPT v$SPUScrpVer for DSM 7"
 printf "\n"
 
 # CHECK IF ROOT
@@ -27,7 +27,7 @@ if [ "$EUID" -ne "0" ]; then
 fi
 
 # SCRAPE SCRIPT PATH INFO
-SPUSFllPth=$(readlink -f "${BASH_SOURCE[0]}")
+SPUSFllPth=$(readlink -f "$BASH_SOURCE")
 SPUSFolder=$(dirname "$SPUSFllPth")
 SPUSFileNm=${SPUSFllPth##*/}
 
@@ -64,34 +64,34 @@ fi
 # GET EPOCH TIMESTAMP FOR AGE CHECKS
 TodaysDate=$(date --date "now" +'%s')
 
-# SCRAPE GITHUB FOR UPDATE INFO
-SPUSRelHtm=$(curl -m $NetTimeout -L -s https://github.com/michealespinola/syno.plexupdate/releases/latest)
+# SCRAPE GITHUB FOR LATEST INFO
+SPUSRelHtm=$(curl -m $NetTimeout -L -s -H 'Accept: application/json' https://github.com/michealespinola/syno.plexupdate/releases/latest)
+SPUSNewVer=$(echo $SPUSRelHtm | jq                                  -r '.tag_name')
+SPUSNewVer=${SPUSNewVer#v}
+SPUSTagHtm=$(curl -m $NetTimeout -L -s                               https://github.com/michealespinola/syno.plexupdate/releases/tag/v$SPUSNewVer)
 if [ "$?" -eq "0" ]; then
-  SPUSZipLnk=https://github.com/$(echo $SPUSRelHtm | grep -oP '\<title\>Release v\d{1,}\.\d{1,}(\.\d{1,})?(\.\d{1,})?')
-  SPUSZipFil=${SPUSZipLnk##*/}
-  SPUSZipVer=$(echo $SPUSZipFil | grep -oP '\d{1,}\.\d{1,}\.\d{1,}')
-  SPUSGtDate=$(echo $SPUSRelHtm | grep -oP 'relative-time datetime="\K[^"]+')
+  SPUSGtDate=$(echo $SPUSTagHtm | grep -oP 'relative-time datetime="\K[^"]+')
   SPUSRlDate=$(date --date "$SPUSGtDate" +'%s')
   SPUSRelAge=$((($TodaysDate-$SPUSRlDate)/86400))
-  SPUSDwnUrl=https://raw.githubusercontent.com/michealespinola/syno.plexupdate/v$SPUSZipVer/syno.plexupdate.sh
+  SPUSDwnUrl=https://raw.githubusercontent.com/michealespinola/syno.plexupdate/v$SPUSNewVer/syno.plexupdate.sh
 else
   printf " %s\n\n" "* UNABLE TO CHECK FOR LATEST VERSION OF SCRIPT..."
   ExitStatus=1
 fi
 
 # PRINT SCRIPT STATUS/DEBUG INFO
-printf "%16s %s\n"           "Script:" "$SPUSFileNm v$SPUScrpVer"
-printf "%16s %s\n"       "Script Dir:" "$SPUSFolder"
-printf "%16s %s\n"      "Running Ver:" "$SPUScrpVer"
-if [ "$SPUSZipVer" != "" ]; then
-  printf "%16s %s\n"     "Online Ver:" "$SPUSZipVer"
-  printf "%16s %s\n"       "Released:" "$(date --rfc-3339 seconds --date @$SPUSRlDate) ($SPUSRelAge+ days old)"
+printf "%14s %s\n"           "Script:" "$SPUSFileNm v$SPUScrpVer"
+printf "%14s %s\n"       "Script Dir:" "$SPUSFolder"
+printf "%14s %s\n"      "Running Ver:" "$SPUScrpVer"
+if [ "$SPUSNewVer" != "" ]; then
+  printf "%14s %s\n"     "Online Ver:" "$SPUSNewVer"
+  printf "%14s %s\n"       "Released:" "$(date --rfc-3339 seconds --date @$SPUSRlDate) ($SPUSRelAge+ days old)"
 fi
 
 # COMPARE SCRIPT VERSIONS
-/usr/bin/dpkg --compare-versions "$SPUSZipVer" gt "$SPUScrpVer"
+/usr/bin/dpkg --compare-versions "$SPUSNewVer" gt "$SPUScrpVer"
 if [ "$?" -eq "0" ]; then
-  printf "                 %s\n" "* Newer version found!"
+  printf "               %s\n" "* Newer version found!"
 
   # DOWNLOAD AND INSTALL THE SCRIPT UPDATE
   if [ "$SelfUpdate" -eq "1" ]; then
@@ -108,16 +108,16 @@ if [ "$?" -eq "0" ]; then
         printf "%s\n" "----------------------------------------"
         cmp -s "$SPUSFolder/Archive/Scripts/$SPUSFileNm.cmp" "$SPUSFolder/$SPUSFileNm"
         if [ "$?" -eq "0" ]; then
-          printf "                 %s\n" "* Script update succeeded!"
+          printf "               %s\n" "* Script update succeeded!"
           /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update completed successfully"}'
           ExitStatus=1
         else
-          printf "                 %s\n" "* Script update failed to overwrite."
+          printf "               %s\n" "* Script update failed to overwrite."
           /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update failed."}'
           ExitStatus=1
         fi
       else
-        printf "                 %s\n" "* Script update failed to download."
+        printf "               %s\n" "* Script update failed to download."
         /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update failed to download."}'
         ExitStatus=1
       fi
@@ -129,14 +129,14 @@ if [ "$?" -eq "0" ]; then
   fi
 
 else
-  printf "                 %s\n" "* No new version found."
+  printf "               %s\n" "* No new version found."
 fi
 printf "\n"
 
 # SCRAPE SYNOLOGY HARDWARE MODEL
 SynoHModel=$(cat /proc/sys/kernel/syno_hw_version)
 # SCRAPE SYNOLOGY CPU ARCHITECTURE FAMILY
-ArchFamily=$(uname -m)
+ArchFamily=$(uname --machine)
 # SCRAPE DSM VERSION AND CHECK COMPATIBILITY
 DSMVersion=$(                   cat /etc.defaults/VERSION | grep -i 'productversion=' | cut -d"\"" -f 2)
 # CHECK IF DSM 7
@@ -158,7 +158,6 @@ RunVersion=$(/usr/syno/bin/synopkg version "PlexMediaServer")
 RunVersion=$(echo $RunVersion | grep -oP '^.+?(?=\-)')
 
 # SCRAPE PMS FOLDER LOCATION AND CREATE ARCHIVED PACKAGES DIR W/OLD FILE CLEANUP
-#lexFolder=$(realpath /var/packages/PlexMediaServer/shares/PlexMediaServer)
 PlexFolder=$(readlink /var/packages/PlexMediaServer/shares/PlexMediaServer)
 PlexFolder="${PlexFolder}/AppData/Plex Media Server"
 
@@ -225,10 +224,10 @@ if [ "$?" -ne "0" ]; then
   printf "%s\n" "$ChannlName Channel"                                                  >> "$SPUSFolder/Archive/Packages/changelog.new"
   printf "%s\n" ""                                                                     >> "$SPUSFolder/Archive/Packages/changelog.new"
   printf "%s\n" "New Features:"                                                        >> "$SPUSFolder/Archive/Packages/changelog.new"
-  printf "%s\n" "$NewVerAddd" | awk '{ print "* " ${BASH_SOURCE[0]} }'                 >> "$SPUSFolder/Archive/Packages/changelog.new"
+  printf "%s\n" "$NewVerAddd" | awk '{ print "* " $BASH_SOURCE }'                      >> "$SPUSFolder/Archive/Packages/changelog.new"
   printf "%s\n" ""                                                                     >> "$SPUSFolder/Archive/Packages/changelog.new"
   printf "%s\n" "Fixed Features:"                                                      >> "$SPUSFolder/Archive/Packages/changelog.new"
-  printf "%s\n" "$NewVerFixd" | awk '{ print "* " ${BASH_SOURCE[0]} }'                 >> "$SPUSFolder/Archive/Packages/changelog.new"
+  printf "%s\n" "$NewVerFixd" | awk '{ print "* " $BASH_SOURCE }'                      >> "$SPUSFolder/Archive/Packages/changelog.new"
   printf "%s\n" ""                                                                     >> "$SPUSFolder/Archive/Packages/changelog.new"
   printf "%s\n" "----------------------------------------"                             >> "$SPUSFolder/Archive/Packages/changelog.new"
   printf "%s\n" ""                                                                     >> "$SPUSFolder/Archive/Packages/changelog.new"
@@ -244,34 +243,36 @@ fi
 rm "$SPUSFolder/Archive/Packages/changelog.new" "$SPUSFolder/Archive/Packages/changelog.tmp" 2>/dev/null
 
 # PRINT PLEX STATUS/DEBUG INFO
-printf "%16s %s\n"         "Synology:" "$SynoHModel ($ArchFamily), DSM $DSMVersion"
-printf "%16s %s\n"         "Plex Dir:" "$PlexFolder"
-printf "%16s %s\n"       "Plex Token:" "$PlexOToken (NEVER POST OR SHARE THIS)"
-printf "%16s %s\n"      "Running Ver:" "$RunVersion"
+printf "%14s %s\n"         "Synology:" "$SynoHModel ($ArchFamily), DSM $DSMVersion"
+printf "%14s %s\n"         "Plex Dir:" "$PlexFolder"
+printf "%14s %s\n"       "Plex Token:" "$PlexOToken (NEVER POST OR SHARE THIS)"
+printf "%14s %s\n"      "Running Ver:" "$RunVersion"
 if [ "$NewVersion" != "" ]; then
-  printf "%16s %s\n"     "Online Ver:" "$NewVersion ($ChannlName Channel)"
-  printf "%16s %s\n"       "Released:" "$(date --rfc-3339 seconds --date @$NewVerDate) ($PackageAge+ days old)"
+  printf "%14s %s\n"     "Online Ver:" "$NewVersion ($ChannlName Channel)"
+  printf "%14s %s\n"       "Released:" "$(date --rfc-3339 seconds --date @$NewVerDate) ($PackageAge+ days old)"
 fi
 
 # COMPARE PLEX VERSIONS
 /usr/bin/dpkg --compare-versions "$NewVersion" gt "$RunVersion"
 if [ "$?" -eq "0" ]; then
-  printf "                 %s\n" "* Newer version found!"
+  printf "               %s\n" "* Newer version found!"
   printf "\n"
-  printf "%16s %s\n"      "New Package:" "$NewPackage"
-  printf "%16s %s\n"      "Package Age:" "$PackageAge+ days old ($MinimumAge+ required for install)"
+  printf "%14s %s\n"      "New Package:" "$NewPackage"
+  printf "%14s %s\n"      "Package Age:" "$PackageAge+ days old ($MinimumAge+ required for install)"
   printf "\n"
 
   # DOWNLOAD AND INSTALL THE PLEX UPDATE
   if [ $PackageAge -ge $MinimumAge ]; then
-    printf "%s\n" "INSTALLING NEW PACKAGE:"
+    printf "%s\n" "INSTALLING NEW PACKAGE (debug):"
     printf "%s\n" "----------------------------------------"
     /bin/wget $NewDwnlUrl -nv -c -nc -P "$SPUSFolder/Archive/Packages/"
     if [ "$?" -eq "0" ]; then
+      printf "%s\n"   "* Stopping PlexMediaServer service:"
       /usr/syno/bin/synopkg stop    "PlexMediaServer"
-      printf "\n"
-      /usr/syno/bin/synopkg install "$SPUSFolder/Archive/Packages/$NewPackage"
-      printf "\n"
+      printf "\n%s\n" "* Installing PlexMediaServer update:"
+      # INSTALL WHILE STRIPPING OUTPUT ANNOYANCES 
+      /usr/syno/bin/synopkg install "$SPUSFolder/Archive/Packages/$NewPackage" | awk '{gsub("<[^>]*>", "")}1' | awk '{gsub(/\\nNote:.*?\\n",/, RS)}1'
+      printf "\n%s\n" "* Starting PlexMediaServer service:"
       /usr/syno/bin/synopkg start   "PlexMediaServer"
     else
       printf "\n %s\n" "* Package download failed, skipping install..."
@@ -279,8 +280,8 @@ if [ "$?" -eq "0" ]; then
     printf "%s\n" "----------------------------------------"
     printf "\n"
     NowVersion=$(/usr/syno/bin/synopkg version "PlexMediaServer")
-    printf "%16s %s\n"      "Update from:" "$RunVersion"
-    printf "%16s %s"                 "to:" "$NewVersion"
+    printf "%14s %s\n"      "Update from:" "$RunVersion"
+    printf "%14s %s"                 "to:" "$NewVersion"
 
     # REPORT PLEX UPDATE STATUS
     /usr/bin/dpkg --compare-versions "$NowVersion" gt "$RunVersion"
@@ -291,7 +292,7 @@ if [ "$?" -eq "0" ]; then
         # SHOW NEW PLEX FEATURES
         printf "%s\n" "NEW FEATURES:"
         printf "%s\n" "----------------------------------------"
-        printf "%s\n" "$NewVerAddd" | awk '{ print "* " ${BASH_SOURCE[0]} }'
+        printf "%s\n" "$NewVerAddd" | awk '{ print "* " $BASH_SOURCE }'
         printf "%s\n" "----------------------------------------"
       fi
       printf "\n"
@@ -299,7 +300,7 @@ if [ "$?" -eq "0" ]; then
         # SHOW FIXED PLEX FEATURES
         printf "%s\n" "FIXED FEATURES:"
         printf "%s\n" "----------------------------------------"
-        printf "%s\n" "$NewVerFixd" | awk '{ print "* " ${BASH_SOURCE[0]} }'
+        printf "%s\n" "$NewVerFixd" | awk '{ print "* " $BASH_SOURCE }'
         printf "%s\n" "----------------------------------------"
       fi
       /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server\n\nSyno.Plex Update task completed successfully"}'
@@ -313,7 +314,7 @@ if [ "$?" -eq "0" ]; then
     printf " %s\n" "Update newer than $MinimumAge days - skipping..."
   fi
 else
-  printf "                 %s\n" "* No new version found."
+  printf "               %s\n" "* No new version found."
 fi
   printf "\n"
 # EXIT NORMALLY BUT POSSIBLY WITH FORCED EXIT STATUS FOR SCRIPT NOTIFICATIONS
