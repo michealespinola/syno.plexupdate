@@ -11,7 +11,7 @@
 # bash /volume1/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
 
 # SCRIPT VERSION
-SPUScrpVer=4.0.1
+SPUScrpVer=4.0.2
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -70,7 +70,7 @@ SPUSNewVer=$(echo $SPUSRelHtm | jq                                  -r '.tag_nam
 SPUSNewVer=${SPUSNewVer#v}
 SPUSTagHtm=$(curl -m $NetTimeout -L -s                               https://github.com/michealespinola/syno.plexupdate/releases/tag/v$SPUSNewVer)
 if [ "$?" -eq "0" ]; then
-  SPUSGtDate=$(echo $SPUSTagHtm | grep -oP 'relative-time datetime="\K[^"]+')
+  SPUSGtDate=$(echo $SPUSTagHtm | grep -oP 'released this <relative-time datetime="\K[^"]+')
   SPUSRlDate=$(date --date "$SPUSGtDate" +'%s')
   SPUSRelAge=$((($TodaysDate-$SPUSRlDate)/86400))
   SPUSDwnUrl=https://raw.githubusercontent.com/michealespinola/syno.plexupdate/v$SPUSNewVer/syno.plexupdate.sh
