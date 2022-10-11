@@ -37,9 +37,11 @@ Download the script and place it into a location of your choosing. As an example
     
 **Note:** Synology recommends that you disable the default "`admin`" account for security reasons. In these examples, the admin directory structure is just a script storage location. You can run the script from here even if you disable the "`admin`" account.
 
-### 2. Add the Plex 'Public Key Certificate' in the DSM
+### 2. Add the Plex 'Public Key Certificate' in DSM 6
 
-Updates directly from Plex (which is what this script installs) are not installable in the Synology DSM by default - because no 3rd-party applications are. To install updates directly from Plex, the DSM must be configured to allow packages from other trusted application publishers. Plex's 'Public Key Certificate' must be installed to allow this safely without simply allowing any and all application publishers. The full instructions for this can be found on Plex's website here:
+* *This step is not required for DSM 7*
+
+Updates directly from Plex (which is what this script installs) are not installable in the Synology DSM 6 by default - because no 3rd-party applications are. To install updates directly from Plex, DSM 6 must be configured to allow packages from other trusted application publishers. Plex's 'Public Key Certificate' must be installed to allow this safely without simply allowing any and all application publishers. The full instructions for this can be found on Plex's website here:
 
 > https://support.plex.tv/articles/205165858-how-to-add-plex-s-package-signing-public-key-to-synology-nas-package-center/
 
