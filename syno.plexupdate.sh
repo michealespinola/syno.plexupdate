@@ -150,6 +150,8 @@ printf '\n'
 SynoHModel=$(cat /proc/sys/kernel/syno_hw_version)
 # SCRAPE SYNOLOGY CPU ARCHITECTURE FAMILY
 ArchFamily=$(uname --machine)
+# Plex uses x86 for 32bit Intel
+[ "$ArchFamily" = "i686" ] && ArchFamily=x86
 # SCRAPE DSM VERSION AND CHECK COMPATIBILITY
 DSMVersion=$(                      grep -i 'productversion=' "/etc.defaults/VERSION" | cut -d"\"" -f 2)
 # CHECK IF DSM 7
