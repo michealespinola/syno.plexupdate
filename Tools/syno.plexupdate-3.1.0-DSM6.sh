@@ -138,7 +138,7 @@ SynoHModel=$(cat /proc/sys/kernel/syno_hw_version)
 # SCRAPE SYNOLOGY CPU ARCHITECTURE FAMILY
 ArchFamily=$(uname -m)
 
-# FIXES FOR INCONSISTANT ARCHITECTURE MATCHES
+# FIXES FOR INCONSISTENT ARCHITECTURE MATCHES
 [ "$ArchFamily" = "i686" ]   && ArchFamily=x86
 [ "$ArchFamily" = "armv7l" ] && ArchFamily=armv7neon
 
