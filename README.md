@@ -208,9 +208,16 @@ The script utilizes (4) default but user-configurable variables:
 
 # Known Non-Issues
 
-* If the DSM is not configured to allow 3rd-party "trusted publishers", the script will log "`error = [289]`" during the package installation process. Synology DSM has been known to sporadically "lose" 3rd-party security certificates for unknown reasons. If this happens, you will have to re-add the Plex 'Public Key Certificate' to your system.
 * If the script runs successfully, the DSM Task status will show "`Interrupted (1)`" and the notification email will state "`Current status: 1 (Interrupted)`". This exit/error status of (1) is intentionally caused by the script in order to force the DSM to perform an email notification of a successful update (in the form of an interruption/error). The DSM otherwise would only send notifications of failed task events, and notifications of successful Plex updates would not be possible.
+* If DSM 6 is not configured to allow 3rd-party "trusted publishers", the script will log "`error = [289]`" during the package installation process. Synology DSM has been known to sporadically "lose" 3rd-party security certificates for unknown reasons. If this happens, you will have to re-add the Plex 'Public Key Certificate' to your system. DSM 7 no longer has this requirement.
 
+# Common Mistakes
+
+* Bash scripts running on Linux must be saved as LF (Line Feed) sequenced text. Windows typically uses CRLF (Carriage Return Line Feed). If you inadvertantly save your script with CRLF instead of LF sequencing, it will error with verbiage such as:
+  * `'\r': command not found`
+  * `syntax error near unexpected`
+  
+  To resolve this issue you will need to [re]save your copy of the script with LF sequencing, or download a new copy directly from GitHub.
 
 # Thank You's
 
