@@ -212,7 +212,7 @@ The script utilizes (4) default but user-configurable variables:
 # Known Non-Issues
 
 * If the script runs successfully, the DSM Task status will show "`Interrupted (1)`" and the notification email will state "`Current status: 1 (Interrupted)`". This exit/error status of (1) is intentionally caused by the script in order to force the DSM to perform an email notification of a successful update (in the form of an interruption/error). The DSM otherwise would only send notifications of failed task events, and notifications of successful Plex updates would not be possible.
-* If DSM 6 is not configured to allow 3rd-party "trusted publishers", the script will log "`error = [289]`" during the package installation process. Synology DSM has been known to sporadically "lose" 3rd-party security certificates for unknown reasons. If this happens, you will have to re-add the Plex 'Public Key Certificate' to your system. DSM 7 no longer has this requirement.
+* If DSM 6 is not configured to allow 3rd-party "trusted publishers", the script will log "`error = [289]`" during the package installation process. Synology DSM 6 has been known to sporadically "lose" 3rd-party security certificates for unknown reasons. If this happens, you will have to re-add the Plex 'Public Key Certificate' to your system. DSM 7 no longer has this requirement.
 
 # Common Mistakes
 
