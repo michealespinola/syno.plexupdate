@@ -23,6 +23,9 @@ The default yet modifiable settings are that the script will not install an upda
 
 DSM 7 is officially supported starting from v4.0.0. DSM 6 support culminates with the v3.x.x series. Dual support may be considered in the future, but it is not at this time while the code is optimized and stablized for DSM 7, and after some new features are implimented.
 
+* The latest updated version supporting DSM 6 can be found here:
+  <https://github.com/michealespinola/syno.plexupdate/tree/master/Tools>
+
 # How-To Setup Example
 
 ### 1. Save the Script to Your NAS
@@ -43,7 +46,7 @@ Download the script and place it into a location of your choosing. As an example
 
 Updates directly from Plex (which is what this script installs) are not installable in the Synology DSM 6 by default - because no 3rd-party applications are. To install updates directly from Plex, DSM 6 must be configured to allow packages from other trusted application publishers. Plex's 'Public Key Certificate' must be installed to allow this safely without simply allowing any and all application publishers. The full instructions for this can be found on Plex's website here:
 
-> https://support.plex.tv/articles/205165858-how-to-add-plex-s-package-signing-public-key-to-synology-nas-package-center/
+> <https://support.plex.tv/articles/205165858-how-to-add-plex-s-package-signing-public-key-to-synology-nas-package-center/>
 
 1. Download the Plex 'Public Key Certificate' file from here: https://downloads.plex.tv/plex-keys/PlexSign.key
 1. Open the [DSM](https://www.synology.com/en-global/knowledgebase/DSM/help) web interface
@@ -213,7 +216,7 @@ The script utilizes (4) default but user-configurable variables:
 
 # Common Mistakes
 
-* Bash scripts running on Linux must be saved as LF (Line Feed) sequenced text. Windows typically uses CRLF (Carriage Return Line Feed). If you inadvertantly save your script with CRLF instead of LF sequencing, it will error with verbiage such as:
+* Bash shell scripts running on Linux must be saved as LF (Line Feed) sequenced text. Alternatively, Windows typically uses CRLF (Carriage Return Line Feed). If you inadvertantly save your script with CRLF instead of LF sequencing, it will error with verbiage such as:
   * `'\r': command not found`
   * `syntax error near unexpected`
   
