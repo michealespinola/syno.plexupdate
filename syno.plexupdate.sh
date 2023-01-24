@@ -262,7 +262,6 @@ rm "$SPUSFolder/Archive/Packages/changelog.new" "$SPUSFolder/Archive/Packages/ch
 # PRINT PLEX STATUS/DEBUG INFO
 printf '%14s %s\n'         "Synology:" "$SynoHModel ($ArchFamily), DSM $DSMVersion"
 printf '%14s %s\n'         "Plex Dir:" "$PlexFolder"
-printf '%14s %s\n'       "Plex Token:" "$PlexOToken (NEVER POST OR SHARE THIS)"
 printf '%14s %s\n'      "Running Ver:" "$RunVersion"
 if [ "$NewVersion" != "" ]; then
   printf '%14s %s\n'     "Online Ver:" "$NewVersion ($ChannlName Channel)"
