@@ -231,7 +231,6 @@ Many thanks to:
 1. [ChuckPa](https://forums.plex.tv/u/ChuckPa) and [trumpy81](https://forums.plex.tv/u/trumpy81) at Plex for being kind and encouraging to this endeavour
 1. [Kynch](https://forums.plex.tv/u/Kynch) for the idea of self-updating the script
 1. [SunMar](https://forums.plex.tv/u/SunMar) for the idea of a changelog
-
- 
+1. [turnmike2](https://github.com/turnmike2) for the idea of logged output to file
 
 [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=2RYY4BETEQAJC)
