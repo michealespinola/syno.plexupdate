@@ -12,8 +12,15 @@
 # Example Synology DSM Scheduled Task type 'user-defined script': 
 # bash /volume1/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
 
+# Redirect stdout to tee in order to duplicate the output to the terminal as well as a .log file
+# Do this while redirecting stderr/debug to a .debug file
+exec > >(tee "$0.log") 2>"$0.debug"
+
+# Enable debug output
+set -x
+
 # SCRIPT VERSION
-SPUScrpVer=4.2.0
+SPUScrpVer=4.3.0
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -149,7 +156,7 @@ fi
 printf "\n"
 
 # SCRAPE SYNOLOGY HARDWARE MODEL
-SynoHModel=$(cat /proc/sys/kernel/syno_hw_version)
+SynoHModel=$(< /proc/sys/kernel/syno_hw_version)
 # SCRAPE SYNOLOGY CPU ARCHITECTURE FAMILY
 ArchFamily=$(uname --machine)
 
