@@ -12,15 +12,13 @@
 # Example Synology DSM Scheduled Task type 'user-defined script': 
 # bash /volume1/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
 
-# Redirect stdout to tee in order to duplicate the output to the terminal as well as a .log file
-# Do this while redirecting stderr/debug to a .debug file
+# REDIRECT STDOUT TO TEE IN ORDER TO DUPLICATE THE OUTPUT TO THE TERMINAL AS WELL AS A .LOG FILE
 exec > >(tee "$0.log") 2>"$0.debug"
-
-# Enable debug output
+# ENABLE XTRACE OUTPUT FOR DEBUG FILE
 set -x
 
 # SCRIPT VERSION
-SPUScrpVer=4.3.0
+SPUScrpVer=4.3.1
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -346,6 +344,10 @@ else
 fi
 
 printf "\n"
+
+# CLOSE AND NORMALIZE THE LOGGING REDIRECTIONS
+exec 1>&3 2>&4
+exec 3>&- 4>&-
 
 # EXIT NORMALLY BUT POSSIBLY WITH FORCED EXIT STATUS FOR SCRIPT NOTIFICATIONS
 if [ -n "$ExitStatus" ]; then
