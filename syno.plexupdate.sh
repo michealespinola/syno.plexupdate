@@ -18,7 +18,7 @@ exec > >(tee "$0.log") 2>"$0.debug"
 set -x
 
 # SCRIPT VERSION
-SPUScrpVer=4.3.1
+SPUScrpVer=4.3.2
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -346,8 +346,7 @@ fi
 printf "\n"
 
 # CLOSE AND NORMALIZE THE LOGGING REDIRECTIONS
-exec 1>&3 2>&4
-exec 3>&- 4>&-
+exec >&- 2>&- 1>&2
 
 # EXIT NORMALLY BUT POSSIBLY WITH FORCED EXIT STATUS FOR SCRIPT NOTIFICATIONS
 if [ -n "$ExitStatus" ]; then
