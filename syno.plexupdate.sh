@@ -23,7 +23,7 @@ exec > >(tee "$SrceFllPth.log") 2>"$SrceFllPth.debug"
 set -x
 
 # SCRIPT VERSION
-SPUScrpVer=4.3.4
+SPUScrpVer=4.3.5
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -111,14 +111,14 @@ if [ "$?" -eq "0" ]; then
       printf "\n"
       printf "%s\n" "INSTALLING NEW SCRIPT:"
       printf "%s\n" "----------------------------------------"
-      /bin/wget "$SPUSDwnUrl" -nv -O "$SrceFolder/Archive/Scripts/$SrceFileNm"
+      /bin/wget -nv "$SPUSDwnUrl" -O "$SrceFolder/Archive/Scripts/$SrceFileNm"                           2>&1
       if [ "$?" -eq "0" ]; then
         # MAKE A COPY FOR UPGRADE COMPARISON BECAUSE WE ARE GOING TO MOVE NOT COPY THE NEW FILE
-        cp -f "$SrceFolder/Archive/Scripts/$SrceFileNm" "$SrceFolder/Archive/Scripts/$SrceFileNm.cmp"
+        cp -f -v "$SrceFolder/Archive/Scripts/$SrceFileNm" "$SrceFolder/Archive/Scripts/$SrceFileNm.cmp" 2>&1
         # MOVE-OVERWRITE INSTEAD OF COPY-OVERWRITE TO NOT CORRUPT RUNNING IN-MEMORY VERSION OF SCRIPT
-        mv -f "$SrceFolder/Archive/Scripts/$SrceFileNm" "$SrceFolder/$SrceFileNm"
+        mv -f -v "$SrceFolder/Archive/Scripts/$SrceFileNm" "$SrceFolder/$SrceFileNm"                     2>&1
         printf "%s\n" "----------------------------------------"
-        cmp -s "$SrceFolder/Archive/Scripts/$SrceFileNm.cmp" "$SrceFolder/$SrceFileNm"
+        cmp "$SrceFolder/Archive/Scripts/$SrceFileNm.cmp" "$SrceFolder/$SrceFileNm"                      2>&1
         if [ "$?" -eq "0" ]; then
           printf '                 %s\n' "* Script update succeeded!"
           /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update completed successfully"}'
