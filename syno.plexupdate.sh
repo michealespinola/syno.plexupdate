@@ -12,13 +12,18 @@
 # Example Synology DSM Scheduled Task type 'user-defined script': 
 # bash /volume1/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
 
+# SCRAPE SCRIPT PATH INFO
+SrceFllPth=$(readlink -f "${BASH_SOURCE[0]}")
+SrceFolder=$(dirname "$SrceFllPth")
+SrceFileNm=${SrceFllPth##*/}
+
 # REDIRECT STDOUT TO TEE IN ORDER TO DUPLICATE THE OUTPUT TO THE TERMINAL AS WELL AS A .LOG FILE
-exec > >(tee "$0.log") 2>"$0.debug"
+exec > >(tee "$SrceFllPth.log") 2>"$SrceFllPth.debug"
 # ENABLE XTRACE OUTPUT FOR DEBUG FILE
 set -x
 
 # SCRIPT VERSION
-SPUScrpVer=4.3.2
+SPUScrpVer=4.3.3
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -32,11 +37,6 @@ if [ "$EUID" -ne "0" ]; then
   printf "\n"
   exit 1
 fi
-
-# SCRAPE SCRIPT PATH INFO
-SrceFllPth=$(readlink -f "${BASH_SOURCE[0]}")
-SrceFolder=$(dirname "$SrceFllPth")
-SrceFileNm=${SrceFllPth##*/}
 
 # CHECK IF DEFAULT CONFIG FILE EXISTS, IF NOT CREATE IT
 if [ ! -f "$SrceFolder/config.ini" ]; then
