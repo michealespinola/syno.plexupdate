@@ -23,7 +23,7 @@ exec > >(tee "$SrceFllPth.log") 2>"$SrceFllPth.debug"
 set -x
 
 # SCRIPT VERSION
-SPUScrpVer=4.3.3
+SPUScrpVer=4.3.4
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -125,6 +125,7 @@ if [ "$?" -eq "0" ]; then
           ExitStatus=1
           if [ -n "$SPUSRelDes" ]; then
             # SHOW RELEASE NOTES
+            printf "\n"
             printf "%s\n" "RELEASE NOTES:"
             printf "%s\n" "----------------------------------------"
             printf "%s\n" "$SPUSRelDes"
