@@ -86,6 +86,7 @@ if [ "$?" -eq "0" ]; then
   GitHubHtml=$(echo "$GitHubHtml" | grep -oPz '\X*\{\W{0,6}\"' | sed -z 's/\W\[.*//')
   # SCRAPE CURRENT RATE LIMIT
   SPUSAPIRlm=$(echo "$GitHubHtml" | grep -oP  '^x-ratelimit-limit: \K[\d]+')
+  SPUSAPIRlr=$(echo "$GitHubHtml" | grep -oP  '^x-ratelimit-remaining: \K[\d]+')
   # SCRAPE API MESSAGES
   SPUSAPIMsg=$(echo "$GitHubJson" | jq -r '.[].message')
   SPUSAPIDoc=$(echo "$GitHubJson" | jq -r '.[].documentation_url')
@@ -113,7 +114,7 @@ if [ "$SPUSNewVer" = "null" ]; then
   printf "%16s %s\n" "GitHub API Doc:" "$(echo "$SPUSAPIDoc" | fold -w 60 -s | sed '2,$s/^/                 /')"
   ExitStatus=1
 elif [ "$SPUSNewVer" != "" ]; then
-  printf '%16s %s\n'     "Online Ver:" "$SPUSNewVer"
+  printf '%16s %s\n'     "Online Ver:" "$SPUSNewVer ($SPUSAPIRlr/$SPUSAPIRlm)"
   printf '%16s %s\n'       "Released:" "$(date --rfc-3339 seconds --date @"$SPUSRlDate") ($SPUSRelAge+ days old)"
 fi
 
