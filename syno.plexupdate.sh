@@ -23,7 +23,7 @@ exec > >(tee "$SrceFllPth.log") 2>"$SrceFllPth.debug"
 set -x
 
 # SCRIPT VERSION
-SPUScrpVer=4.3.5
+SPUScrpVer=4.4.0
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -77,8 +77,19 @@ TodaysDate=$(date --date "now" +'%s')
 
 # SCRAPE GITHUB WEBSITE FOR LATEST INFO
 GitHubRepo=michealespinola/syno.plexupdate
-GitHubJson=$(curl -m "$NetTimeout" -Ls https://api.github.com/repos/$GitHubRepo/releases?per_page=1)
+GitHubHtml=$(curl -i -m "$NetTimeout" -Ls https://api.github.com/repos/$GitHubRepo/releases?per_page=1)
 if [ "$?" -eq "0" ]; then
+  # AVOID SCRAPING SQUARED BRACKETS BECAUSE GITHUB IS INCONSISTENT
+  GitHubJson=$(echo "$GitHubHtml" | grep -oPz '\{\s{0,6}\"\X*\s{0,4}\}')
+  # ADD SQUARED BRACKETS BECAUSE ITS PROPER AND JQ NEEDS IT
+  GitHubJson=$'[\n'"$GitHubJson"$'\n]'
+  GitHubHtml=$(echo "$GitHubHtml" | grep -oPz '\X*\{\W{0,6}\"' | sed -z 's/\W\[.*//')
+  # SCRAPE CURRENT RATE LIMIT
+  SPUSAPIRlm=$(echo "$GitHubHtml" | grep -oP  '^x-ratelimit-limit: \K[\d]+')
+  # SCRAPE API MESSAGES
+  SPUSAPIMsg=$(echo "$GitHubJson" | jq -r '.[].message')
+  SPUSAPIDoc=$(echo "$GitHubJson" | jq -r '.[].documentation_url')
+  #SCRAPE EXPECTED RELEASE-RELATED INFO
   SPUSNewVer=$(echo "$GitHubJson" | jq -r '.[].tag_name')
   SPUSNewVer=${SPUSNewVer#v}
   SPUSRlDate=$(echo "$GitHubJson" | jq -r '.[].published_at')
@@ -96,61 +107,68 @@ fi
 printf '%16s %s\n'           "Script:" "$SrceFileNm"
 printf '%16s %s\n'       "Script Dir:" "$SrceFolder"
 printf '%16s %s\n'      "Running Ver:" "$SPUScrpVer"
-if [ "$SPUSNewVer" != "" ]; then
+if [ "$SPUSNewVer" = "null" ]; then
+  printf "%16s %s\n" "GitHub API Msg:" "$(echo "$SPUSAPIMsg" | fold -w 60 -s | sed '2,$s/^/                 /')"
+  printf "%16s %s\n" "GitHub API Lmt:" "$SPUSAPIRlm connections per hour per IP"
+  printf "%16s %s\n" "GitHub API Doc:" "$(echo "$SPUSAPIDoc" | fold -w 60 -s | sed '2,$s/^/                 /')"
+  ExitStatus=1
+elif [ "$SPUSNewVer" != "" ]; then
   printf '%16s %s\n'     "Online Ver:" "$SPUSNewVer"
   printf '%16s %s\n'       "Released:" "$(date --rfc-3339 seconds --date @"$SPUSRlDate") ($SPUSRelAge+ days old)"
 fi
 
 # COMPARE SCRIPT VERSIONS
-/usr/bin/dpkg --compare-versions "$SPUSNewVer" gt "$SPUScrpVer"
-if [ "$?" -eq "0" ]; then
-  printf '                 %s\n' "* Newer version found!"
-  # DOWNLOAD AND INSTALL THE SCRIPT UPDATE
-  if [ "$SelfUpdate" -eq "1" ]; then
-    if [ "$SPUSRelAge" -ge "$MinimumAge" ]; then
-      printf "\n"
-      printf "%s\n" "INSTALLING NEW SCRIPT:"
-      printf "%s\n" "----------------------------------------"
-      /bin/wget -nv "$SPUSDwnUrl" -O "$SrceFolder/Archive/Scripts/$SrceFileNm"                           2>&1
-      if [ "$?" -eq "0" ]; then
-        # MAKE A COPY FOR UPGRADE COMPARISON BECAUSE WE ARE GOING TO MOVE NOT COPY THE NEW FILE
-        cp -f -v "$SrceFolder/Archive/Scripts/$SrceFileNm" "$SrceFolder/Archive/Scripts/$SrceFileNm.cmp" 2>&1
-        # MOVE-OVERWRITE INSTEAD OF COPY-OVERWRITE TO NOT CORRUPT RUNNING IN-MEMORY VERSION OF SCRIPT
-        mv -f -v "$SrceFolder/Archive/Scripts/$SrceFileNm" "$SrceFolder/$SrceFileNm"                     2>&1
+if [ "$SPUSNewVer" != "null" ]; then
+  /usr/bin/dpkg --compare-versions "$SPUSNewVer" gt "$SPUScrpVer"
+  if [ "$?" -eq "0" ]; then
+    printf '                 %s\n' "* Newer version found!"
+    # DOWNLOAD AND INSTALL THE SCRIPT UPDATE
+    if [ "$SelfUpdate" -eq "1" ]; then
+      if [ "$SPUSRelAge" -ge "$MinimumAge" ]; then
+        printf "\n"
+        printf "%s\n" "INSTALLING NEW SCRIPT:"
         printf "%s\n" "----------------------------------------"
-        cmp "$SrceFolder/Archive/Scripts/$SrceFileNm.cmp" "$SrceFolder/$SrceFileNm"                      2>&1
+        /bin/wget -nv "$SPUSDwnUrl" -O "$SrceFolder/Archive/Scripts/$SrceFileNm"                               2>&1
         if [ "$?" -eq "0" ]; then
-          printf '                 %s\n' "* Script update succeeded!"
-          /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update completed successfully"}'
-          ExitStatus=1
-          if [ -n "$SPUSRelDes" ]; then
-            # SHOW RELEASE NOTES
-            printf "\n"
-            printf "%s\n" "RELEASE NOTES:"
-            printf "%s\n" "----------------------------------------"
-            printf "%s\n" "$SPUSRelDes"
-            printf "%s\n" "----------------------------------------"
-            printf "%s\n" "Report issues to: $SPUSHlpUrl"
+          # MAKE A COPY FOR UPGRADE COMPARISON BECAUSE WE ARE GOING TO MOVE NOT COPY THE NEW FILE
+          cp -f -v "$SrceFolder/Archive/Scripts/$SrceFileNm"     "$SrceFolder/Archive/Scripts/$SrceFileNm.cmp" 2>&1
+          # MOVE-OVERWRITE INSTEAD OF COPY-OVERWRITE TO NOT CORRUPT RUNNING IN-MEMORY VERSION OF SCRIPT
+          mv -f -v "$SrceFolder/Archive/Scripts/$SrceFileNm"     "$SrceFolder/$SrceFileNm"                     2>&1
+          printf "%s\n" "----------------------------------------"
+          cmp -s   "$SrceFolder/Archive/Scripts/$SrceFileNm.cmp" "$SrceFolder/$SrceFileNm"
+          if [ "$?" -eq "0" ]; then
+            printf '                 %s\n' "* Script update succeeded!"
+            /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update completed successfully"}'
+            ExitStatus=1
+            if [ -n "$SPUSRelDes" ]; then
+              # SHOW RELEASE NOTES
+              printf "\n"
+              printf "%s\n" "RELEASE NOTES:"
+              printf "%s\n" "----------------------------------------"
+              printf "%s\n" "$SPUSRelDes"
+              printf "%s\n" "----------------------------------------"
+              printf "%s\n" "Report issues to: $SPUSHlpUrl"
+            fi
+          else
+            printf '                 %s\n' "* Script update failed to overwrite."
+            /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update failed."}'
+            ExitStatus=1
           fi
         else
-          printf '                 %s\n' "* Script update failed to overwrite."
-          /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update failed."}'
+          printf '                 %s\n' "* Script update failed to download."
+          /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update failed to download."}'
           ExitStatus=1
         fi
       else
-        printf '                 %s\n' "* Script update failed to download."
-        /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update failed to download."}'
-        ExitStatus=1
+        printf ' \n%s\n' "Update newer than $MinimumAge days - skipping.."
       fi
-    else
-      printf ' \n%s\n' "Update newer than $MinimumAge days - skipping.."
+      # DELETE TEMP COMPARISON FILE
+      find "$SrceFolder/Archive/Scripts" -type f -name "$SrceFileNm.cmp" -delete
     fi
-    # DELETE TEMP COMPARISON FILE
-    find "$SrceFolder/Archive/Scripts" -type f -name "$SrceFileNm.cmp" -delete
+  
+  else
+    printf '                 %s\n' "* No new version found."
   fi
-
-else
-  printf '                 %s\n' "* No new version found."
 fi
 printf "\n"
 
