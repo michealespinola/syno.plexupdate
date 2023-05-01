@@ -23,7 +23,7 @@ exec > >(tee "$SrceFllPth.log") 2>"$SrceFllPth.debug"
 set -x
 
 # SCRIPT VERSION
-SPUScrpVer=4.4.0
+SPUScrpVer=4.4.1
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
