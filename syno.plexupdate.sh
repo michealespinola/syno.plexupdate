@@ -59,6 +59,25 @@ if [ -f "$SrceFolder/config.ini" ]; then
   source "$SrceFolder/config.ini"
 fi
 
+# Allow an override of the timeout on the CLI
+while getopts ":a:" arg; do
+  case $arg in
+    a)
+      case $OPTARG in
+        '' | *[!0-9]*)
+          echo "The value for -a must be a number" >&2
+          ;;
+        *) MinimumAge="$OPTARG" ;;
+      esac
+      ;;
+    *)
+      echo "Missing a required argument for -${OPTARG}" >&2
+      exit 1
+      ;;
+  esac
+done
+shift $(expr $OPTIND - 1)
+
 # CHECK IF SCRIPT IS ARCHIVED
 if [ ! -d "$SrceFolder/Archive/Scripts" ]; then
   mkdir -p "$SrceFolder/Archive/Scripts"
