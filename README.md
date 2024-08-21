@@ -88,6 +88,7 @@ Updates directly from Plex (which is what this script installs) are not installa
 The script will automatically create directories and files as needed in the following directory structure based off of the location of the script, as per this example:
 
     /volume1/homes/admin/scripts/bash/plex/syno.plexupdate
+    |   config.ini
     |   README.md
     |   syno.plexupdate.sh
     |
