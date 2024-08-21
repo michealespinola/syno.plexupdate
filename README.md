@@ -11,17 +11,17 @@
 
 # Description
 
-This script takes into account many if not all of the issues I have previously read about for automatically updating Plex on the Synology NAS platform. This is a heavily-modified/overhauled version of the "[martinorob/plexupdate](https://github.com/martinorob/plexupdate)" script, with the specific intent to simplify its use to not require any Bash script variable editing or SSH access to the Synology NAS. This script originally started as a simple fork, but over the generations has turned into a wholly different script aside from the core task of updating Plex Media Server. The "fork" has been officially discontinued because it no longer resembles the original script, and has different support requirements.
+This script addresses common issues with automatically updating Plex on Synology NAS, evolved significantly from the original "[martinorob/plexupdate](https://github.com/martinorob/plexupdate)" script. It has been overhauled to eliminate the need for Bash variable editing or SSH access, making it user-friendly for DSM web administration. The original fork from "martinorob/plexupdate" has been discontinued due because the current script was rewritten from the ground up with extensive modifications, resulting in a unique script with different support requirements.
 
-Everything you need to do to get this script running can be done with basic DSM web administration by dropping this script onto the NAS and configuring a scheduled Task. This script is specifically for the update of the official Synology package of the Plex Media Server as released by [Plex GmbH](https://www.plex.tv/). This script utilizes Synology’s built-in tools to self-determine everything it needs to know about where Plex is located, how to update it, and to notify the system of updates or failures to the update process. If Plex is installed and properly configured, you will not have to edit this script for any details about the installation location of Plex. Public or Beta update channel selection follows what you have configured in the Plex Media Server's 'General' settings section.
+The script is tailored specifically to update the official Synology package of Plex Media Server, as released by [Plex GmbH](https://www.plex.tv/). It uses Synology's built-in tools to automatically detect Plex's installation location, manage updates, and notify the system of any issues. If Plex is properly installed, no manual script editing is needed. The script respects the update channel settings (Public or Beta) configured in your Plex Media Server's 'General' settings.
 
-Although only personally tested on my DS1019+, this script has been written to work on any compatible Synology platform using the built-in command-line utilities of the DSM. It reads your hardware architecture from the system and matches it against what is compatible with Plex. If its a part of the official Plex public or beta channel, this script will update it.
+Though primarily developed and tested on and against a DS1019+, the script is designed and written to work on any compatible Synology platform using DSM's command-line utilities. It reads the local hardware architecture and ensures compatibility with specific versions of Plex that are released for specific Synology hardware platforms. If the update is part of the official Plex public or beta channel, the script will apply it.
 
-The default yet modifiable settings are that the script will not install an update unless it is 7+ days old. This is a stability safety-catch so that if a release has a bug, it is assumed it will be discovered and fixed within 7 days. It also keeps previously downloaded/installed packages in its "Updates" archive directory for 60 days before automatic deletion.
+By default, the script only installs updates that are at least 7 days old, serving as a stability measure. Additionally, it retains previously downloaded and installed packages in an "Updates" archive for 60 days before automatic deletion to make rollbacks easier to find and perform.
 
 ### DSM 6 and DSM 7 Support Notes
 
-DSM 7 is officially supported starting from v4.0.0. DSM 6 support culminates with the v3.x.x series. Dual support may be considered in the future, but it is not at this time while the code is optimized and stablized for DSM 7, and after some new features are implimented.
+DSM 7 is officially supported starting from v4.0.0 and the OS platform that the script is developed for. DSM 6 support culminated with the v3.x.x series of the script. Dual support may be considered in the future, but it is not at this time while the code is optimized and stablized for DSM 7, and after some new features are implimented. I welcome development collaboration if anyone is interested, but I do not use DSM 6 myself, so it makes my own work in this direction difficult and undesirable.
 
 * The latest updated version supporting DSM 6 can be found here:
   <https://github.com/michealespinola/syno.plexupdate/tree/master/Tools>
@@ -38,13 +38,13 @@ Download the script and place it into a location of your choosing. As an example
 
     /homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
     
-**Note:** Synology recommends that you disable the default "`admin`" account for security reasons. In these examples, the admin directory structure is just a script storage location. You can run the script from here even if you disable the "`admin`" account.
+**Note:** Synology recommends that you disable the default "`admin`" account for security reasons. In these examples, the admin directory structure is just a script storage location. You can run the script from here even if you disable the "`admin`" account (which you really should).
 
 ### 2. Add the Plex 'Public Key Certificate' in DSM 6
 
 * *This step is not required for DSM 7*
 
-Updates directly from Plex (which is what this script installs) are not installable in the Synology DSM 6 by default - because no 3rd-party applications are. To install updates directly from Plex, DSM 6 must be configured to allow packages from other trusted application publishers. Plex's 'Public Key Certificate' must be installed to allow this safely without simply allowing any and all application publishers. The full instructions for this can be found on Plex's website here:
+Updates directly from Plex (which is what this script installs) are not installable in the Synology DSM 6 by default - because no 3rd-party applications are. To install updates directly from Plex, DSM 6 must be configured to allow packages from other trusted application publishers. To facilitate this, Plex's 'Public Key Certificate' must be installed to allow this securely and without simply allowing any and all application publishers to be installable. The full instructions for this can be found on Plex's website here:
 
 > <https://support.plex.tv/articles/205165858-how-to-add-plex-s-package-signing-public-key-to-synology-nas-package-center/>
 
@@ -111,86 +111,95 @@ The script will automatically create directories and files as needed in the foll
                 syno.plexupdate.v2.9.9.2.sh
                 ...
 
-The Archive directory structure contains copies of update Packages as well as copies of the update Scripts that are running. The script archive is not a mirror of what is on GitHub. The script archive are a snapshot of running copies of the script. If you make modifications to the script, the copy in the script archive will be updated accordingly. The packages archive is similarly for manual rollback purposes.
+The Archive directory structure contains copies of update Packages as well as copies of the update Scripts that are running. However, the script archive is not a mirror of what is on GitHub. The script archive are a snapshot of running copies of the script. If you make modifications to the script, the copy in the script archive will be updated accordingly. The packages archive is similarly intended for manual rollback purposes.
 
 The '`changelog.txt`' file is a historical changelog only for updates installed locally by the script. It will not contain any historical information for versions that were otherwised skipped by the script.
 
-# Example Output
+# Example Email Notification
 
     Dear user,
 
     Task Scheduler has completed a scheduled task.
 
     Task: Syno.Plex Update
-    Start time: Thu, 25 Mar 2021 02:05:36 GMT
-    Stop time: Thu, 25 Mar 2021 02:06:21 GMT
+    Start time: Tue, 20 Aug 2024 12:05:36 GMT
+    Stop time: Tue, 20 Aug 2024 12:06:21 GMT
     Current status: 1 (Interrupted)
     Standard output/error:
 
-    SYNO.PLEX UPDATER SCRIPT v3.0.0
+    SYNO.PLEX UPDATE SCRIPT v4.4.1 for DSM 7
 
-             Script: syno.plexupdate.sh v3.0.0
-         Script Dir: /volume1/homes/admin/scripts/bash/plex/syno.plexupdate
-        Running Ver: 3.0.0
-         Online Ver: 2.3.3
-           Released: 2020-09-06 06:34:14-07:00 (200+ days old)
-                     * No new version found.
+            Script: syno.plexupdate.sh
+        Script Dir: /volume1/homes/admin/scripts/bash/plex/syno.plexupdate
+       Running Ver: 4.4.1
+        Online Ver: 4.5.0 (59/60)
+          Released: 2024-08-20 18:30:14-07:00 (0+ days old)
+                    * Newer version found!
 
-           Synology: DS1019+ (x86_64), DSM 6.2.4-25556 Update 0
-           Plex Dir: /volume1/Plex/Library/Application Support/Plex Media Server
-         Plex Token: ####################
-        Running Ver: 1.22.0.4163-d8c4875dd
-         Online Ver: 1.22.1.4228-724c56e62 (Public Channel)
-           Released: 2021-03-23 05:41:44-07:00 (1+ days old)
-                     * Newer version found!
+    INSTALLING NEW SCRIPT:
+    ----------------------------------------
+    2024-08-20 19:09:07 URL:https://raw.githubusercontent.com/michealespinola/syno.plexupdate/v4.5.0/syno.plexupdate.sh [17155/17155] -> "/volume1/homes/admin/scripts/bash/plex/syno.plexupdate/Archive/Scripts/syno.plexupdate.sh" [1]
+    '/volume1/homes/admin/scripts/bash/plex/syno.plexupdate/Archive/Scripts/syno.plexupdate.sh' -> '/volume1/homes/admin/scripts/bash/plex/syno.plexupdate/Archive/Scripts/syno.plexupdate.sh.cmp'
+    renamed '/volume1/homes/admin/scripts/bash/plex/syno.plexupdate/Archive/Scripts/syno.plexupdate.sh' -> '/volume1/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh'
+    ----------------------------------------
+                    * Script update succeeded!
 
-        New Package: PlexMediaServer-1.22.1.4228-724c56e62-x86_64_DSM6.spk
-        Package Age: 1+ days old (0+ required for install)
+    RELEASE NOTES:
+    ----------------------------------------
+    1. Fixed bug introduced in Plex back end causing null data fields
+    2. Added command line option for modifying MinimumAge variable
+    3. Tweaked how TodaysDate variable is captured
+    4. Tweaked how long SrceFolder variables are displayed
+    ----------------------------------------
+    Report issues to: https://github.com/michealespinola/syno.plexupdate/issues
+
+          Synology: DS1019+ (x86_64), DSM 7.2.1-69057 Update 5
+          Plex Dir: /volume4/PlexMediaServer/AppData/Plex Media Server
+       Running Ver: 1.40.5.8854
+        Online Ver: 1.40.5.8897 (Beta Channel)
+          Released: 2024-08-20 08:51:24-07:00 (0+ days old)
+                    * Newer version found!
+
+        New Package: PlexMediaServer-1.40.5.8897-e5987a19d-x86_64_DSM7.spk
+        Package Age: 0+ days old (0+ required for install)
 
     INSTALLING NEW PACKAGE:
     ----------------------------------------
-    2021-03-25 02:05:40 URL:https://downloads.plex.tv/plex-media-server-new/1.22.1.4228-724c56e62/synology/PlexMediaServer-1.22.1.4228-724c56e62-x86_64_DSM6.spk [116664320/116664320] -> "/volume1/homes/admin/scripts/bash/plex/syno.plexupdate/Archive/Packages/PlexMediaServer-1.22.1.4228-724c56e62-x86_64_DSM6.spk" [1]
-    package Plex Media Server stop successfully
+    Downloading PlexMediaServer package:
 
-    /volume1/homes/admin/scripts/bash/plex/syno.plexupdate/Archive/Packages/PlexMediaServer-1.22.1.4228-724c56e62-x86_64_DSM6.spk install successfully
+    Stopping PlexMediaServer service:
+    {"action":"stop","beta":false,"error":{"code":0},"finished":true,"language":"enu","last_stage":"stopped","package":"PlexMediaServer","pid":25669,"scripts":[{"code":0,"message":"","type":"stop"}],"stage":"stopped","status":"stop","status_code":324,"status_description":"translate from systemd status","success":true,"username":"","version":"1.40.5.8854-7000"}
 
-    package Plex Media Server start successfully
+    Installing PlexMediaServer update:
+    {"error":{"code":0},"results":[{"action":"upgrade","beta":false,"betaIncoming":false,"error":{"code":0},"finished":true,"installReboot":false,"installing":true,"language":"enu","last_stage":"postupgrade","package":"PlexMediaServer","packageName":"Plex Media Server","pid":25843,"scripts":[{"code":0,"message":"","type":"preupgrade"},{"code":0,"message":"","type":"preuninst"},{"code":0,"message":"","type":"postuninst"},{"code":0,"message":"","type":"preinst"},{"code":0,"message":"Installation Successful!
+    "type":"postinst"},{"code":0,"message":"","type":"postupgrade"}],"spk":"/volume1/homes/admin/scripts/bash/plex/syno.plexupdate/Archive/Packages/PlexMediaServer-1.40.5.8897-e5987a19d-x86_64_DSM7.spk","stage":"installed_and_stopped","status":"stop","status_code":273,"status_description":"translate from systemd status","success":true,"username":"","version":"1.40.5.8854-7000"}],"success":true}
+
+    Starting PlexMediaServer service:
+    {"action":"start","beta":false,"error":{"code":0},"finished":true,"language":"enu","last_stage":"started","package":"PlexMediaServer","pid":26409,"scripts":[{"code":0,"message":"","type":"start"}],"stage":"started","status":"running","success":true,"username":"","version":"1.40.5.8897-7000"}
     ----------------------------------------
 
-        Update from: 1.22.0.4163-d8c4875dd
-                 to: 1.22.1.4228-724c56e62 succeeded!
+        Update from: 1.40.5.8854
+                to: 1.40.5.8897 succeeded!
 
     NEW FEATURES:
     ----------------------------------------
-    * (Library) Improved search handling of non-Latin scripts (#7896)
-    * (Library) Improved search handling of punctuation (#7833)
-    * (Web) Updated to 4.52.2
-    * (Web) Updated to 4.53.0
-    * Updated Translations.
+    * (Log) Reduced the number of log messages generated when starting playback on an NVIDIA device. (PM-1417)
+    * (Windows) noautorestart command line parameter added which prevents PMS from restarting after an auto update (PM-1305)
     ----------------------------------------
 
     FIXED FEATURES:
     ----------------------------------------
-    * (Butler) The scheduled job to refresh local metadata could use a lot or memory.
-    * (Gaming) Allow h/w encoding for parallel N64 core.
-    * (Gaming) Fix for games not saving state on Windows.
-    * (Gaming) Move to using nearest neighbor scaling for sharper rendering.
-    * (Gaming) OpenGL v2 and v3 rendering pipelines.
-    * (Gaming) Use passed in display dimensions to render at a higher resolution.
-    * (Library) Artist genres were not being set for FLAC files.
-    * (Library) Don't expose genre radio if user has "none" selected for genre source.
-    * (Library) Ensure shuffle doesn't bias towards single-track artists.
-    * (Library) Old lyrics weren't being removed, which could result in errors displaying lyrics.
-    * (Library) TV intro detection would run unconditionally for users without a Plex Pass using the beta TV agent.
-    * (Metadata) On rare occasions, refreshing a movie item may remove reviews and extras (#12428)
-    * (Statistics) Don't store duplicate records in the statistics tables
-    * (Transcoder) Short backwards seeks could fail in DASH transcodes under some circumstances (#11824)
-    * Added Slovak and Slovenian translations.
-    * Crash returning active playback sessions.
-    * Episodes with air date and no episode number could play out of order.
-    * The server could fail to start up on some ARM systems (#12513)
-    * Tightened cross-origin request security restrictions (#7712)
+    * (Analysis) Preview thumbnail generation would not run on newly added media regardless if the preference was set (PM-1782)
+    * (Lyrics) Sidecar lyrics would fail to load (PM-1865)
+    * (QNAP) PMS might not start in all cases after QTS/QuTS restart.
+    * (ToneMapping) Tonemapping on linux with Gemini Lake devices would crash after a period of time. (PM-1934)
+    * (ToneMapping) Tonemapping on linux with some Intel devices caused the transcoder to crash (PM-1934)
+    * (View State Sync) Item plays could be duplicated when state synced from service.
+    * (ViewStateSync) Fewer requests to plex.tv endpoints (PM-1958)
+    * (Windows 64bit) Not all files were removed on uninstall (PM-1632)
+    * Plex Media Server could crash when falling back to SW encoding. (#15026)
     ----------------------------------------
+
 
 
 
