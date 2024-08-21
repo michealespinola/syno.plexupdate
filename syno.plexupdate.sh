@@ -23,7 +23,7 @@ exec > >(tee "$SrceFllPth.log") 2>"$SrceFllPth.debug"
 set -x
 
 # SCRIPT VERSION
-SPUScrpVer=4.4.1
+SPUScrpVer=4.5.0
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -59,24 +59,28 @@ if [ -f "$SrceFolder/config.ini" ]; then
   source "$SrceFolder/config.ini"
 fi
 
-# Allow an override of the timeout on the CLI
-while getopts ":a:" arg; do
-  case $arg in
+# OVERRIDE SETTINGS WITH CLI OPTIONS
+while getopts ":a:" opt; do
+  case ${opt} in
     a)
-      case $OPTARG in
-        '' | *[!0-9]*)
-          echo "The value for -a must be a number" >&2
-          ;;
-        *) MinimumAge="$OPTARG" ;;
-      esac
+      # Check if the value is numerical only
+      if [[ $OPTARG =~ ^[0-9]+$ ]]; then
+        MinimumAge=$OPTARG
+      else
+        printf '%16s %s\n\n' "Invalid Option:" "-a option requires a numerical value"
+        exit 1
+      fi
       ;;
-    *)
-      echo "Missing a required argument for -${OPTARG}" >&2
+    \?)
+      printf '%16s %s\n\n'   "Invalid Option:" "-$OPTARG"
+      exit 1
+      ;;
+    :)
+      printf '%16s %s\n\n'   "Invalid Option:" "-$OPTARG requires an argument"
       exit 1
       ;;
   esac
 done
-shift $(expr $OPTIND - 1)
 
 # CHECK IF SCRIPT IS ARCHIVED
 if [ ! -d "$SrceFolder/Archive/Scripts" ]; then
@@ -92,7 +96,7 @@ else
 fi
 
 # GET EPOCH TIMESTAMP FOR AGE CHECKS
-TodaysDate=$(date --date "now" +'%s')
+TodaysDate=$(date +%s)
 
 # SCRAPE GITHUB WEBSITE FOR LATEST INFO
 GitHubRepo=michealespinola/syno.plexupdate
@@ -125,7 +129,7 @@ fi
 
 # PRINT SCRIPT STATUS/DEBUG INFO
 printf '%16s %s\n'           "Script:" "$SrceFileNm"
-printf '%16s %s\n'       "Script Dir:" "$SrceFolder"
+printf '%16s %s\n'       "Script Dir:" "$(echo "$SrceFolder" | fold -w 60 -s | sed '2,$s/^/                 /')"
 printf '%16s %s\n'      "Running Ver:" "$SPUScrpVer"
 if [ "$SPUSNewVer" = "null" ]; then
   printf "%16s %s\n" "GitHub API Msg:" "$(echo "$SPUSAPIMsg" | fold -w 60 -s | sed '2,$s/^/                 /')"
@@ -266,11 +270,11 @@ fi
 # SCRAPE PLEX WEBSITE FOR UPDATE INFO
 DistroJson=$(curl -m "$NetTimeout" -Ls "$ChannelUrl")
 if [ "$?" -eq "0" ]; then
-  NewVersion=$(echo "$DistroJson" | jq -r '.nas.Synology.version')
+  NewVersion=$(echo "$DistroJson" | jq -r '.nas."Synology (DSM 7)".version')
   NewVersion=$(echo "$NewVersion" | grep -oP '^.+?(?=\-)')
-  NewVerDate=$(echo "$DistroJson" | jq -r '.nas.Synology.release_date')
-  NewVerAddd=$(echo "$DistroJson" | jq -r '.nas.Synology.items_added')
-  NewVerFixd=$(echo "$DistroJson" | jq -r '.nas.Synology.items_fixed')
+  NewVerDate=$(echo "$DistroJson" | jq -r '.nas."Synology (DSM 7)".release_date')
+  NewVerAddd=$(echo "$DistroJson" | jq -r '.nas."Synology (DSM 7)".items_added')
+  NewVerFixd=$(echo "$DistroJson" | jq -r '.nas."Synology (DSM 7)".items_fixed')
   NewDwnlUrl=$(echo "$DistroJson" | jq --arg ArchFamily "$ArchFamily"  -r '.nas."Synology (DSM 7)".releases[] | select(.build == "linux-"+$ArchFamily) | .url'); NewPackage="${NewDwnlUrl##*/}"
   # CALCULATE NEW PACKAGE AGE FROM RELEASE DATE
   PackageAge=$(((TodaysDate-NewVerDate)/86400))
@@ -309,7 +313,7 @@ rm "$SrceFolder/Archive/Packages/changelog.new" "$SrceFolder/Archive/Packages/ch
 
 # PRINT PLEX STATUS/DEBUG INFO
 printf '%16s %s\n'         "Synology:" "$SynoHModel ($ArchFamily), DSM $DSMVersion"
-printf '%16s %s\n'         "Plex Dir:" "$PlexFolder"
+printf '%16s %s\n'         "Plex Dir:" "$(echo "$PlexFolder" | fold -w 60 -s | sed '2,$s/^/                 /')"
 printf '%16s %s\n'      "Running Ver:" "$RunVersion"
 if [ "$NewVersion" != "" ]; then
   printf '%16s %s\n'     "Online Ver:" "$NewVersion ($ChannlName Channel)"
