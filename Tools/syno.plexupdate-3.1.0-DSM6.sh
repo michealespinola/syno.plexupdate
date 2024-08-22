@@ -210,12 +210,12 @@ fi
 # SCRAPE PLEX FOR UPDATE INFO
 DistroJson=$(curl -m $NetTimeout -L -s $ChannelUrl)
 if [ "$?" -eq "0" ]; then
-  NewVersion=$(echo $DistroJson | jq                                -r '.nas.Synology.version')
+  NewVersion=$(echo $DistroJson | jq                                -r '.nas["Synology (DSM 6)"].version')
   NewVersion=$(echo $NewVersion | grep -oP '^.+?(?=\-)')
-  NewVerDate=$(echo $DistroJson | jq                                -r '.nas.Synology.release_date')
-  NewVerAddd=$(echo $DistroJson | jq                                -r '.nas.Synology.items_added')
-  NewVerFixd=$(echo $DistroJson | jq                                -r '.nas.Synology.items_fixed')
-  NewDwnlUrl=$(echo $DistroJson | jq --arg ArchFamily "$ArchFamily" -r '.nas.Synology.releases[] | select(.build == "linux-"+$ArchFamily) | .url'); NewPackage="${NewDwnlUrl##*/}"
+  NewVerDate=$(echo $DistroJson | jq                                -r '.nas["Synology (DSM 6)"].release_date')
+  NewVerAddd=$(echo $DistroJson | jq                                -r '.nas["Synology (DSM 6)"].items_added')
+  NewVerFixd=$(echo $DistroJson | jq                                -r '.nas["Synology (DSM 6)"].items_fixed')
+  NewDwnlUrl=$(echo $DistroJson | jq --arg ArchFamily "$ArchFamily" -r '.nas["Synology (DSM 6)"].releases[] | select(.build == "linux-"+$ArchFamily) | .url'); NewPackage="${NewDwnlUrl##*/}"
   # CALCULATE NEW PACKAGE AGE FROM RELEASE DATE
   PackageAge=$((($TodaysDate-$NewVerDate)/86400))
 else
