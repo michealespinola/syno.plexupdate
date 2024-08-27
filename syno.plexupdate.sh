@@ -23,7 +23,7 @@ exec > >(tee "$SrceFllPth.log") 2>"$SrceFllPth.debug"
 set -x
 
 # SCRIPT VERSION
-SPUScrpVer=4.5.1
+SPUScrpVer=4.5.2
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -146,7 +146,7 @@ fi
 if [ "$SPUSNewVer" != "null" ]; then
   /usr/bin/dpkg --compare-versions "$SPUSNewVer" gt "$SPUScrpVer"
   if [ "$?" -eq "0" ]; then
-    printf '                 %s\n' "* Newer version found!"
+    printf '%17s%s\n' '' "* Newer version found!"
     # DOWNLOAD AND INSTALL THE SCRIPT UPDATE
     if [ "$SelfUpdate" -eq "1" ]; then
       if [ "$SPUSRelAge" -ge "$MinimumAge" ]; then
@@ -162,7 +162,7 @@ if [ "$SPUSNewVer" != "null" ]; then
           printf "%s\n" "----------------------------------------"
           cmp -s   "$SrceFolder/Archive/Scripts/$SrceFileNm.cmp" "$SrceFolder/$SrceFileNm"
           if [ "$?" -eq "0" ]; then
-            printf '                 %s\n' "* Script update succeeded!"
+            printf '%17s%s\n' '' "* Script update succeeded!"
             /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update completed successfully"}'
             ExitStatus=1
             if [ -n "$SPUSRelDes" ]; then
@@ -175,12 +175,12 @@ if [ "$SPUSNewVer" != "null" ]; then
               printf "%s\n" "Report issues to: $SPUSHlpUrl"
             fi
           else
-            printf '                 %s\n' "* Script update failed to overwrite."
+            printf '%17s%s\n' '' "* Script update failed to overwrite."
             /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update failed."}'
             ExitStatus=1
           fi
         else
-          printf '                 %s\n' "* Script update failed to download."
+          printf '%17s%s\n' '' "* Script update failed to download."
           /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update failed to download."}'
           ExitStatus=1
         fi
@@ -192,7 +192,7 @@ if [ "$SPUSNewVer" != "null" ]; then
     fi
   
   else
-    printf '                 %s\n' "* No new version found."
+    printf '%17s%s\n' '' "* No new version found."
   fi
 fi
 printf "\n"
@@ -325,7 +325,7 @@ fi
 # COMPARE PLEX VERSIONS
 /usr/bin/dpkg --compare-versions "$NewVersion" gt "$RunVersion"
 if [ "$?" -eq "0" ]; then
-  printf '                 %s\n' "* Newer version found!"
+  printf '%17s%s\n' '' "* Newer version found!"
   printf "\n"
   printf '%16s %s\n'    "New Package:" "$NewPackage"
   printf '%16s %s\n'    "Package Age:" "$PackageAge+ days old ($MinimumAge+ required for install)"
@@ -351,8 +351,8 @@ if [ "$?" -eq "0" ]; then
     printf "%s\n" "----------------------------------------"
     printf "\n"
     NowVersion=$(/usr/syno/bin/synopkg version "PlexMediaServer")
-    printf '%16s %s\n'      "Update from:" "$RunVersion"
-    printf '%16s %s'                   "to:" "$NewVersion"
+    printf '%16s %s\n'  "Update from:" "$RunVersion"
+    printf '%16s %s'             "to:" "$NewVersion"
 
     # REPORT PLEX UPDATE STATUS
     /usr/bin/dpkg --compare-versions "$NowVersion" gt "$RunVersion"
@@ -385,7 +385,7 @@ if [ "$?" -eq "0" ]; then
     printf ' %s\n' "Update newer than $MinimumAge days - skipping.."
   fi
 else
-  printf '                 %s\n' "* No new version found."
+  printf '%17s%s\n' '' "* No new version found."
 fi
 
 printf "\n"
