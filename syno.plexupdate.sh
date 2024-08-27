@@ -23,7 +23,7 @@ exec > >(tee "$SrceFllPth.log") 2>"$SrceFllPth.debug"
 set -x
 
 # SCRIPT VERSION
-SPUScrpVer=4.5.0
+SPUScrpVer=4.5.1
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -103,25 +103,25 @@ GitHubRepo=michealespinola/syno.plexupdate
 GitHubHtml=$(curl -i -m "$NetTimeout" -Ls https://api.github.com/repos/$GitHubRepo/releases?per_page=1)
 if [ "$?" -eq "0" ]; then
   # AVOID SCRAPING SQUARED BRACKETS BECAUSE GITHUB IS INCONSISTENT
-  GitHubJson=$(echo "$GitHubHtml" | grep -oPz '\{\s{0,6}\"\X*\s{0,4}\}')
+  GitHubJson=$(grep -oPz '\{\s{0,6}\"\X*\s{0,4}\}'          < <(printf '%s' "$GitHubHtml"))
   # ADD SQUARED BRACKETS BECAUSE ITS PROPER AND JQ NEEDS IT
   GitHubJson=$'[\n'"$GitHubJson"$'\n]'
-  GitHubHtml=$(echo "$GitHubHtml" | grep -oPz '\X*\{\W{0,6}\"' | sed -z 's/\W\[.*//')
+  GitHubHtml=$(grep -oPz '\X*\{\W{0,6}\"'                   < <(printf '%s' "$GitHubHtml") | sed -z 's/\W\[.*//')
   # SCRAPE CURRENT RATE LIMIT
-  SPUSAPIRlm=$(echo "$GitHubHtml" | grep -oP  '^x-ratelimit-limit: \K[\d]+')
-  SPUSAPIRlr=$(echo "$GitHubHtml" | grep -oP  '^x-ratelimit-remaining: \K[\d]+')
+  SPUSAPIRlm=$(grep -oP '^x-ratelimit-limit: \K[\d]+'       < <(printf '%s' "$GitHubHtml"))
+  SPUSAPIRlr=$(grep -oP '^x-ratelimit-remaining: \K[\d]+'   < <(printf '%s' "$GitHubHtml"))
   # SCRAPE API MESSAGES
-  SPUSAPIMsg=$(echo "$GitHubJson" | jq -r '.[].message')
-  SPUSAPIDoc=$(echo "$GitHubJson" | jq -r '.[].documentation_url')
-  #SCRAPE EXPECTED RELEASE-RELATED INFO
-  SPUSNewVer=$(echo "$GitHubJson" | jq -r '.[].tag_name')
+  SPUSAPIMsg=$(jq -r '.[].message'                          < <(printf '%s' "$GitHubJson"))
+  SPUSAPIDoc=$(jq -r '.[].documentation_url'                < <(printf '%s' "$GitHubJson"))
+  # SCRAPE EXPECTED RELEASE-RELATED INFO
+  SPUSNewVer=$(jq -r '.[].tag_name'                         < <(printf '%s' "$GitHubJson"))
   SPUSNewVer=${SPUSNewVer#v}
-  SPUSRlDate=$(echo "$GitHubJson" | jq -r '.[].published_at')
+  SPUSRlDate=$(jq -r '.[].published_at'                     < <(printf '%s' "$GitHubJson"))
   SPUSRlDate=$(date --date "$SPUSRlDate" +'%s')
   SPUSRelAge=$(((TodaysDate-SPUSRlDate)/86400))
   SPUSDwnUrl=https://raw.githubusercontent.com/$GitHubRepo/v$SPUSNewVer/syno.plexupdate.sh
   SPUSHlpUrl=https://github.com/$GitHubRepo/issues
-  SPUSRelDes=$(echo "$GitHubJson" | jq -r '.[].body')
+  SPUSRelDes=$(jq -r '.[].body'                             < <(printf '%s' "$GitHubJson"))
 else
   printf ' %s\n\n' "* UNABLE TO CHECK FOR LATEST VERSION OF SCRIPT.."
   ExitStatus=1
@@ -129,12 +129,13 @@ fi
 
 # PRINT SCRIPT STATUS/DEBUG INFO
 printf '%16s %s\n'           "Script:" "$SrceFileNm"
-printf '%16s %s\n'       "Script Dir:" "$(echo "$SrceFolder" | fold -w 60 -s | sed '2,$s/^/                 /')"
+printf '%16s %s\n'       "Script Dir:" "$(fold -w 60 -s     < <(printf '%s' "$SrceFolder") | sed '2,$s/^/                 /')"
 printf '%16s %s\n'      "Running Ver:" "$SPUScrpVer"
+
 if [ "$SPUSNewVer" = "null" ]; then
-  printf "%16s %s\n" "GitHub API Msg:" "$(echo "$SPUSAPIMsg" | fold -w 60 -s | sed '2,$s/^/                 /')"
+  printf "%16s %s\n" "GitHub API Msg:" "$(fold -w 60 -s     < <(printf '%s' "$SPUSAPIMsg") | sed '2,$s/^/                 /')"
   printf "%16s %s\n" "GitHub API Lmt:" "$SPUSAPIRlm connections per hour per IP"
-  printf "%16s %s\n" "GitHub API Doc:" "$(echo "$SPUSAPIDoc" | fold -w 60 -s | sed '2,$s/^/                 /')"
+  printf "%16s %s\n" "GitHub API Doc:" "$(fold -w 60 -s     < <(printf '%s' "$SPUSAPIDoc") | sed '2,$s/^/                 /')"
   ExitStatus=1
 elif [ "$SPUSNewVer" != "" ]; then
   printf '%16s %s\n'     "Online Ver:" "$SPUSNewVer ($SPUSAPIRlr/$SPUSAPIRlm)"
@@ -206,7 +207,7 @@ ArchFamily=$(uname --machine)
 [ "$ArchFamily" = "armv7l" ] && ArchFamily=armv7neon
 
 # SCRAPE DSM VERSION AND CHECK COMPATIBILITY
-DSMVersion=$(                      grep -i "productversion=" "/etc.defaults/VERSION" | cut -d"\"" -f 2)
+DSMVersion=$(grep -i "productversion=" "/etc.defaults/VERSION" | cut -d"\"" -f 2)
 # CHECK IF DSM 7
 /usr/bin/dpkg --compare-versions "$MinDSMVers" gt "$DSMVersion"
 if [ "$?" -eq "0" ]; then
@@ -215,15 +216,15 @@ if [ "$?" -eq "0" ]; then
   printf "\n"
   exit 1
 fi
-DSMVersion=$(echo "$DSMVersion"-"$(grep -i "buildnumber="    "/etc.defaults/VERSION" | cut -d"\"" -f 2)")
-DSMUpdateV=$(                      grep -i "smallfixnumber=" "/etc.defaults/VERSION" | cut -d"\"" -f 2)
+DSMVersion=$(grep -i "buildnumber="    "/etc.defaults/VERSION" | cut -d'"' -f 2 | { read -r build; printf '%s-%s' "$DSMVersion" "$build"; })
+DSMUpdateV=$(grep -i "smallfixnumber=" "/etc.defaults/VERSION" | cut -d'"' -f 2)
 if [ -n "$DSMUpdateV" ]; then
   DSMVersion="$DSMVersion Update $DSMUpdateV"
 fi
 
 # SCRAPE CURRENTLY RUNNING PMS VERSION
 RunVersion=$(/usr/syno/bin/synopkg version "PlexMediaServer")
-RunVersion=$(echo "$RunVersion"  | grep -oP '^.+?(?=\-)')
+RunVersion=$(grep -oP '^.+?(?=\-)'                          < <(printf '%s' "$RunVersion"))
 
 # SCRAPE PMS FOLDER LOCATION AND CREATE ARCHIVED PACKAGES DIR W/OLD FILE CLEANUP
 PlexFolder=$(readlink /var/packages/PlexMediaServer/shares/PlexMediaServer)
@@ -270,12 +271,13 @@ fi
 # SCRAPE PLEX WEBSITE FOR UPDATE INFO
 DistroJson=$(curl -m "$NetTimeout" -Ls "$ChannelUrl")
 if [ "$?" -eq "0" ]; then
-  NewVersion=$(echo "$DistroJson" | jq -r '.nas."Synology (DSM 7)".version')
-  NewVersion=$(echo "$NewVersion" | grep -oP '^.+?(?=\-)')
-  NewVerDate=$(echo "$DistroJson" | jq -r '.nas."Synology (DSM 7)".release_date')
-  NewVerAddd=$(echo "$DistroJson" | jq -r '.nas."Synology (DSM 7)".items_added')
-  NewVerFixd=$(echo "$DistroJson" | jq -r '.nas."Synology (DSM 7)".items_fixed')
-  NewDwnlUrl=$(echo "$DistroJson" | jq --arg ArchFamily "$ArchFamily"  -r '.nas."Synology (DSM 7)".releases[] | select(.build == "linux-"+$ArchFamily) | .url'); NewPackage="${NewDwnlUrl##*/}"
+  NewVersion=$(jq -r '.nas."Synology (DSM 7)".version'      < <(printf '%s' "$DistroJson"))
+  NewVersion=$(grep -oP '^.+?(?=\-)'                        < <(printf '%s' "$NewVersion"))
+  NewVerDate=$(jq -r '.nas."Synology (DSM 7)".release_date' < <(printf '%s' "$DistroJson"))
+  NewVerAddd=$(jq -r '.nas."Synology (DSM 7)".items_added'  < <(printf '%s' "$DistroJson"))
+  NewVerFixd=$(jq -r '.nas."Synology (DSM 7)".items_fixed'  < <(printf '%s' "$DistroJson"))
+  NewDwnlUrl=$(jq --arg ArchFamily "$ArchFamily" -r '.nas."Synology (DSM 7)".releases[] | select(.build == "linux-"+$ArchFamily) | .url' < <(printf '%s' "$DistroJson"))
+  NewPackage="${NewDwnlUrl##*/}"
   # CALCULATE NEW PACKAGE AGE FROM RELEASE DATE
   PackageAge=$(((TodaysDate-NewVerDate)/86400))
 else
@@ -313,7 +315,7 @@ rm "$SrceFolder/Archive/Packages/changelog.new" "$SrceFolder/Archive/Packages/ch
 
 # PRINT PLEX STATUS/DEBUG INFO
 printf '%16s %s\n'         "Synology:" "$SynoHModel ($ArchFamily), DSM $DSMVersion"
-printf '%16s %s\n'         "Plex Dir:" "$(echo "$PlexFolder" | fold -w 60 -s | sed '2,$s/^/                 /')"
+printf '%16s %s\n'         "Plex Dir:" "$(fold -w 60 -s     < <(printf '%s' "$PlexFolder") | sed '2,$s/^/                 /')"
 printf '%16s %s\n'      "Running Ver:" "$RunVersion"
 if [ "$NewVersion" != "" ]; then
   printf '%16s %s\n'     "Online Ver:" "$NewVersion ($ChannlName Channel)"
@@ -325,8 +327,8 @@ fi
 if [ "$?" -eq "0" ]; then
   printf '                 %s\n' "* Newer version found!"
   printf "\n"
-  printf '%16s %s\n'      "New Package:" "$NewPackage"
-  printf '%16s %s\n'      "Package Age:" "$PackageAge+ days old ($MinimumAge+ required for install)"
+  printf '%16s %s\n'    "New Package:" "$NewPackage"
+  printf '%16s %s\n'    "Package Age:" "$PackageAge+ days old ($MinimumAge+ required for install)"
   printf "\n"
 
   # DOWNLOAD AND INSTALL THE PLEX UPDATE
