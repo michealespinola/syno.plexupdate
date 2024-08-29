@@ -23,7 +23,7 @@ exec > >(tee "$SrceFllPth.log") 2>"$SrceFllPth.debug"
 set -x
 
 # SCRIPT VERSION
-SPUScrpVer=4.6.1
+SPUScrpVer=4.6.2
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -146,7 +146,7 @@ if [ "$SPUSNewVer" = "null" ]; then
   printf "%16s %s\n" "GitHub API Doc:" "$(fold -w 72 -s     < <(printf '%s' "$SPUSAPIDoc") | sed '2,$s/^/                 /')"
   ExitStatus=1
 elif [ "$SPUSNewVer" != "" ]; then
-  printf '%16s %s\n'     "Online Ver:" "$SPUSNewVer ($SPUSAPIRlr/$SPUSAPIRlm)"
+  printf '%16s %s\n'     "Online Ver:" "$SPUSNewVer (attempt $SPUSAPIRlr/$SPUSAPIRlm)"
   printf '%16s %s\n'       "Released:" "$(date --rfc-3339 seconds --date @"$SPUSRlDate") ($SPUSRelAge+ days old)"
 fi
 
@@ -338,7 +338,7 @@ printf '%16s %s\n'         "Synology:" "$SynoHModel ($ArchFamily), DSM $DSMVersi
 printf '%16s %s\n'         "Plex Dir:" "$(fold -w 72 -s     < <(printf '%s' "$PlexFolder") | sed '2,$s/^/                 /')"
 printf '%16s %s\n'      "Running Ver:" "$RunVersion"
 if [ "$NewVersion" != "" ]; then
-  printf '%16s %s\n'     "Online Ver:" "$NewVersion ($ChannlName Channel)"
+  printf '%16s %s\n'     "Online Ver:" "$NewVersion ($DSMplexNID $ChannlName Channel)"
   printf '%16s %s\n'       "Released:" "$(date --rfc-3339 seconds --date @"$NewVerDate") ($PackageAge+ days old)"
 fi
 
