@@ -23,7 +23,7 @@ exec > >(tee "$SrceFllPth.log") 2>"$SrceFllPth.debug"
 set -x
 
 # SCRIPT VERSION
-SPUScrpVer=4.5.2
+SPUScrpVer=4.5.3
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -60,9 +60,9 @@ if [ -f "$SrceFolder/config.ini" ]; then
 fi
 
 # OVERRIDE SETTINGS WITH CLI OPTIONS
-while getopts ":a:" opt; do
+while getopts ":a:m" opt; do
   case ${opt} in
-    a)
+    a) # AUTO-UPDATE
       # Check if the value is numerical only
       if [[ $OPTARG =~ ^[0-9]+$ ]]; then
         MinimumAge=$OPTARG
@@ -71,11 +71,14 @@ while getopts ":a:" opt; do
         exit 1
       fi
       ;;
-    \?)
+    m) # MASTER UPDATE
+      MasterUpdt=true
+      ;;
+    \?) # INVALID OPTION
       printf '%16s %s\n\n'   "Invalid Option:" "-$OPTARG"
       exit 1
       ;;
-    :)
+    :) # NO ARGUMENT
       printf '%16s %s\n\n'   "Invalid Option:" "-$OPTARG requires an argument"
       exit 1
       ;;
@@ -119,7 +122,11 @@ if [ "$?" -eq "0" ]; then
   SPUSRlDate=$(jq -r '.[].published_at'                     < <(printf '%s' "$GitHubJson"))
   SPUSRlDate=$(date --date "$SPUSRlDate" +'%s')
   SPUSRelAge=$(((TodaysDate-SPUSRlDate)/86400))
-  SPUSDwnUrl=https://raw.githubusercontent.com/$GitHubRepo/v$SPUSNewVer/syno.plexupdate.sh
+  if [ "$MasterUpdt" = "true" ]; then
+    SPUSDwnUrl=https://raw.githubusercontent.com/$GitHubRepo/master/syno.plexupdate.sh
+  else
+    SPUSDwnUrl=https://raw.githubusercontent.com/$GitHubRepo/v$SPUSNewVer/syno.plexupdate.sh
+  fi
   SPUSHlpUrl=https://github.com/$GitHubRepo/issues
   SPUSRelDes=$(jq -r '.[].body'                             < <(printf '%s' "$GitHubJson"))
 else
@@ -145,11 +152,16 @@ fi
 # COMPARE SCRIPT VERSIONS
 if [ "$SPUSNewVer" != "null" ]; then
   /usr/bin/dpkg --compare-versions "$SPUSNewVer" gt "$SPUScrpVer"
-  if [ "$?" -eq "0" ]; then
-    printf '%17s%s\n' '' "* Newer version found!"
+# if [ "$?" -eq "0" ]; then
+  if [ "$?" -eq "0" ] || [ "$MasterUpdt" = "true" ]; then
+    if [ "$MasterUpdt" = "true" ]; then
+      printf '%17s%s\n' '' "* Updating from master!"
+    else
+      printf '%17s%s\n' '' "* Newer version found!"
+    fi
     # DOWNLOAD AND INSTALL THE SCRIPT UPDATE
     if [ "$SelfUpdate" -eq "1" ]; then
-      if [ "$SPUSRelAge" -ge "$MinimumAge" ]; then
+      if [ "$SPUSRelAge" -ge "$MinimumAge" ] || [ "$MasterUpdt" = "true" ]; then
         printf "\n"
         printf "%s\n" "INSTALLING NEW SCRIPT:"
         printf "%s\n" "----------------------------------------"
