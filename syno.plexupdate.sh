@@ -23,7 +23,7 @@ exec > >(tee "$SrceFllPth.log") 2>"$SrceFllPth.debug"
 set -x
 
 # SCRIPT VERSION
-SPUScrpVer=4.6.0
+SPUScrpVer=4.6.1
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -219,7 +219,7 @@ ArchFamily=$(uname --machine)
 
 # SCRAPE DSM VERSION AND CHECK COMPATIBILITY
 DSMVersion=$(grep -i "productversion=" "/etc.defaults/VERSION" | cut -d"\"" -f 2)
-if /usr/bin/dpkg   --compare-versions "$DSMVersion" "ge" "6"     && /usr/bin/dpkg --compare-versions "$DSMVersion" "lt" "7"; then
+if /usr/bin/dpkg   --compare-versions "$DSMVersion" "ge" "5.2"   && /usr/bin/dpkg --compare-versions "$DSMVersion" "lt" "7"; then
   DSMplexNID="synology"
 elif /usr/bin/dpkg --compare-versions "$DSMVersion" "eq" "7"     && /usr/bin/dpkg --compare-versions "$DSMVersion" "lt" "7.2.2"; then
   DSMplexNID="synology-dsm7"
