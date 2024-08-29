@@ -23,7 +23,7 @@ exec > >(tee "$SrceFllPth.log") 2>"$SrceFllPth.debug"
 set -x
 
 # SCRIPT VERSION
-SPUScrpVer=4.5.4
+SPUScrpVer=4.6.0
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -62,7 +62,7 @@ fi
 # OVERRIDE SETTINGS WITH CLI OPTIONS
 while getopts ":a:m" opt; do
   case ${opt} in
-    a) # AUTO-UPDATE
+    a) # AUTO-UPDATE SCRIPT AND PLEX
       # Check if the value is numerical only
       if [[ $OPTARG =~ ^[0-9]+$ ]]; then
         MinimumAge=$OPTARG
@@ -71,14 +71,14 @@ while getopts ":a:m" opt; do
         exit 1
       fi
       ;;
-    m) # MASTER UPDATE
+    m) # UPDATE TO MASTER BRANCH (NON-RELEASE)
       MasterUpdt=true
       ;;
     \?) # INVALID OPTION
       printf '%16s %s\n\n'   "Invalid Option:" "-$OPTARG"
       exit 1
       ;;
-    :) # NO ARGUMENT
+    :) # MISSING ARGUMENT
       printf '%16s %s\n\n'   "Invalid Option:" "-$OPTARG requires an argument"
       exit 1
       ;;
@@ -137,13 +137,13 @@ fi
 
 # PRINT SCRIPT STATUS/DEBUG INFO
 printf '%16s %s\n'           "Script:" "$SrceFileNm"
-printf '%16s %s\n'       "Script Dir:" "$(fold -w 60 -s     < <(printf '%s' "$SrceFolder") | sed '2,$s/^/                 /')"
+printf '%16s %s\n'       "Script Dir:" "$(fold -w 72 -s     < <(printf '%s' "$SrceFolder") | sed '2,$s/^/                 /')"
 printf '%16s %s\n'      "Running Ver:" "$SPUScrpVer"
 
 if [ "$SPUSNewVer" = "null" ]; then
-  printf "%16s %s\n" "GitHub API Msg:" "$(fold -w 60 -s     < <(printf '%s' "$SPUSAPIMsg") | sed '2,$s/^/                 /')"
+  printf "%16s %s\n" "GitHub API Msg:" "$(fold -w 72 -s     < <(printf '%s' "$SPUSAPIMsg") | sed '2,$s/^/                 /')"
   printf "%16s %s\n" "GitHub API Lmt:" "$SPUSAPIRlm connections per hour per IP"
-  printf "%16s %s\n" "GitHub API Doc:" "$(fold -w 60 -s     < <(printf '%s' "$SPUSAPIDoc") | sed '2,$s/^/                 /')"
+  printf "%16s %s\n" "GitHub API Doc:" "$(fold -w 72 -s     < <(printf '%s' "$SPUSAPIDoc") | sed '2,$s/^/                 /')"
   ExitStatus=1
 elif [ "$SPUSNewVer" != "" ]; then
   printf '%16s %s\n'     "Online Ver:" "$SPUSNewVer ($SPUSAPIRlr/$SPUSAPIRlm)"
@@ -151,12 +151,10 @@ elif [ "$SPUSNewVer" != "" ]; then
 fi
 
 # COMPARE SCRIPT VERSIONS
-if [ "$SPUSNewVer" != "null" ]; then
-  /usr/bin/dpkg --compare-versions "$SPUSNewVer" gt "$SPUScrpVer"
-# if [ "$?" -eq "0" ]; then
-  if [ "$?" -eq "0" ] || [ "$MasterUpdt" = "true" ]; then
-    if [ "$MasterUpdt" = "true" ]; then
-      printf '%17s%s\n' '' "* Updating from master!"
+if [[ "$SPUSNewVer" != "null" ]]; then
+  if /usr/bin/dpkg --compare-versions "$SPUSNewVer" gt "$SPUScrpVer" || [[ "$MasterUpdt" == "true" ]]; then
+    if [[ "$MasterUpdt" == "true" ]]; then
+      printf '%17s%s\n' '' "* Updating from master branch!"
     else
       printf '%17s%s\n' '' "* Newer version found!"
     fi
@@ -166,7 +164,7 @@ if [ "$SPUSNewVer" != "null" ]; then
         printf "\n"
         printf "%s\n" "INSTALLING NEW SCRIPT:"
         printf "%s\n" "----------------------------------------"
-        /bin/wget -nv "$SPUSDwnUrl" -O "$SrceFolder/Archive/Scripts/$SrceFileNm"                               2>&1
+        /bin/wget -nv -O "$SrceFolder/Archive/Scripts/$SrceFileNm" "$SPUSDwnUrl"                               2>&1
         if [ "$?" -eq "0" ]; then
           # MAKE A COPY FOR UPGRADE COMPARISON BECAUSE WE ARE GOING TO MOVE NOT COPY THE NEW FILE
           cp -f -v "$SrceFolder/Archive/Scripts/$SrceFileNm"     "$SrceFolder/Archive/Scripts/$SrceFileNm.cmp" 2>&1
@@ -221,9 +219,18 @@ ArchFamily=$(uname --machine)
 
 # SCRAPE DSM VERSION AND CHECK COMPATIBILITY
 DSMVersion=$(grep -i "productversion=" "/etc.defaults/VERSION" | cut -d"\"" -f 2)
+if /usr/bin/dpkg   --compare-versions "$DSMVersion" "ge" "6"     && /usr/bin/dpkg --compare-versions "$DSMVersion" "lt" "7"; then
+  DSMplexNID="synology"
+elif /usr/bin/dpkg --compare-versions "$DSMVersion" "eq" "7"     && /usr/bin/dpkg --compare-versions "$DSMVersion" "lt" "7.2.2"; then
+  DSMplexNID="synology-dsm7"
+elif /usr/bin/dpkg --compare-versions "$DSMVersion" "eq" "7.2.2" && /usr/bin/dpkg --compare-versions "$DSMVersion" "lt" "7.3"; then
+  DSMplexNID="synology-dsm72"
+else
+  echo "Unsupported DSM version: $DSMVersion"
+fi
+
 # CHECK IF DSM 7
-/usr/bin/dpkg --compare-versions "$MinDSMVers" gt "$DSMVersion"
-if [ "$?" -eq "0" ]; then
+if /usr/bin/dpkg --compare-versions "$MinDSMVers" gt "$DSMVersion"; then
   printf ' %s\n' "* Syno.Plex Update requires DSM $MinDSMVers minimum to install - exiting.."
   /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server\n\nSyno.Plex Update task failed. DSM not sufficient version."}'
   printf "\n"
@@ -284,12 +291,12 @@ fi
 # SCRAPE PLEX WEBSITE FOR UPDATE INFO
 DistroJson=$(curl -m "$NetTimeout" -Ls "$ChannelUrl")
 if [ "$?" -eq "0" ]; then
-  NewVersion=$(jq -r '.nas."Synology (DSM 7)".version'      < <(printf '%s' "$DistroJson"))
-  NewVersion=$(grep -oP '^.+?(?=\-)'                        < <(printf '%s' "$NewVersion"))
-  NewVerDate=$(jq -r '.nas."Synology (DSM 7)".release_date' < <(printf '%s' "$DistroJson"))
-  NewVerAddd=$(jq -r '.nas."Synology (DSM 7)".items_added'  < <(printf '%s' "$DistroJson"))
-  NewVerFixd=$(jq -r '.nas."Synology (DSM 7)".items_fixed'  < <(printf '%s' "$DistroJson"))
-  NewDwnlUrl=$(jq --arg ArchFamily "$ArchFamily" -r '.nas."Synology (DSM 7)".releases[] | select(.build == "linux-"+$ArchFamily) | .url' < <(printf '%s' "$DistroJson"))
+  NewVerFull=$(jq --arg DSMplexNID "$DSMplexNID"                                -r '.nas[] | select(.id == $DSMplexNID) | .version'      < <(printf '%s' "$DistroJson"))
+  NewVersion=$(grep -oP '^.+?(?=\-)'                                                                                                     < <(printf '%s' "$NewVerFull"))
+  NewVerDate=$(jq --arg DSMplexNID "$DSMplexNID"                                -r '.nas[] | select(.id == $DSMplexNID) | .release_date' < <(printf '%s' "$DistroJson"))
+  NewVerAddd=$(jq --arg DSMplexNID "$DSMplexNID"                                -r '.nas[] | select(.id == $DSMplexNID) | .items_added'  < <(printf '%s' "$DistroJson"))
+  NewVerFixd=$(jq --arg DSMplexNID "$DSMplexNID"                                -r '.nas[] | select(.id == $DSMplexNID) | .items_fixed'  < <(printf '%s' "$DistroJson"))
+  NewDwnlUrl=$(jq --arg DSMplexNID "$DSMplexNID" --arg ArchFamily "$ArchFamily" -r '.nas[] | select(.id == $DSMplexNID) | .releases[] | select(.build == "linux-"+$ArchFamily) | .url' < <(printf '%s' "$DistroJson"))
   NewPackage="${NewDwnlUrl##*/}"
   # CALCULATE NEW PACKAGE AGE FROM RELEASE DATE
   PackageAge=$(((TodaysDate-NewVerDate)/86400))
@@ -328,7 +335,7 @@ rm "$SrceFolder/Archive/Packages/changelog.new" "$SrceFolder/Archive/Packages/ch
 
 # PRINT PLEX STATUS/DEBUG INFO
 printf '%16s %s\n'         "Synology:" "$SynoHModel ($ArchFamily), DSM $DSMVersion"
-printf '%16s %s\n'         "Plex Dir:" "$(fold -w 60 -s     < <(printf '%s' "$PlexFolder") | sed '2,$s/^/                 /')"
+printf '%16s %s\n'         "Plex Dir:" "$(fold -w 72 -s     < <(printf '%s' "$PlexFolder") | sed '2,$s/^/                 /')"
 printf '%16s %s\n'      "Running Ver:" "$RunVersion"
 if [ "$NewVersion" != "" ]; then
   printf '%16s %s\n'     "Online Ver:" "$NewVersion ($ChannlName Channel)"
@@ -336,8 +343,7 @@ if [ "$NewVersion" != "" ]; then
 fi
 
 # COMPARE PLEX VERSIONS
-/usr/bin/dpkg --compare-versions "$NewVersion" gt "$RunVersion"
-if [ "$?" -eq "0" ]; then
+if /usr/bin/dpkg --compare-versions "$NowVersion" gt "$RunVersion"; then
   printf '%17s%s\n' '' "* Newer version found!"
   printf "\n"
   printf '%16s %s\n'    "New Package:" "$NewPackage"
@@ -349,7 +355,10 @@ if [ "$?" -eq "0" ]; then
     printf "%s\n" "INSTALLING NEW PACKAGE:"
     printf "%s\n" "----------------------------------------"
     printf "%s\n" "Downloading PlexMediaServer package:"
-    /bin/wget "$NewDwnlUrl" -nv -c -nc -P "$SrceFolder/Archive/Packages/"
+    if [ -f "$SrceFolder/Archive/Packages/$NewPackage" ]; then
+      printf "%s\n" "* Package already exists in local Archive"
+    fi
+    /bin/wget -nv -c -nc -P "$SrceFolder/Archive/Packages/" "$NewDwnlUrl"                                      2>&1
     if [ "$?" -eq "0" ]; then
       printf "\n%s\n"   "Stopping PlexMediaServer service:"
       /usr/syno/bin/synopkg stop    "PlexMediaServer"
@@ -368,8 +377,7 @@ if [ "$?" -eq "0" ]; then
     printf '%16s %s'             "to:" "$NewVersion"
 
     # REPORT PLEX UPDATE STATUS
-    /usr/bin/dpkg --compare-versions "$NowVersion" gt "$RunVersion"
-    if [ "$?" -eq "0" ]; then
+    if /usr/bin/dpkg --compare-versions "$NowVersion" gt "$RunVersion"; then
       printf ' %s\n' "succeeded!"
       printf "\n"
       if [ -n "$NewVerAddd" ]; then
