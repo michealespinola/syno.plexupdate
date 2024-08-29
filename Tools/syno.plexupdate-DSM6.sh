@@ -144,6 +144,10 @@ ArchFamily=$(uname -m)
 
 # SCRAPE DSM VERSION AND CHECK COMPATIBILITY
 DSMVersion=$(                   cat /etc.defaults/VERSION | grep -i 'productversion=' | cut -d"\"" -f 2)
+if /usr/bin/dpkg   --compare-versions "$DSMVersion" "ge" "5.2"     && /usr/bin/dpkg --compare-versions "$DSMVersion" "lt" "7"; then
+  DSMplexNID="synology"
+fi
+
 # CHECK IF X86 MODEL
 if [ "$SynoHModel" == "DS214Play" ] || [ "$SynoHModel" == "DS415Play" ]; then
   MinDSMVers=5.2
@@ -210,12 +214,14 @@ fi
 # SCRAPE PLEX FOR UPDATE INFO
 DistroJson=$(curl -m $NetTimeout -L -s $ChannelUrl)
 if [ "$?" -eq "0" ]; then
-  NewVersion=$(echo $DistroJson | jq                                -r '.nas["Synology (DSM 6)"].version')
-  NewVersion=$(echo $NewVersion | grep -oP '^.+?(?=\-)')
-  NewVerDate=$(echo $DistroJson | jq                                -r '.nas["Synology (DSM 6)"].release_date')
-  NewVerAddd=$(echo $DistroJson | jq                                -r '.nas["Synology (DSM 6)"].items_added')
-  NewVerFixd=$(echo $DistroJson | jq                                -r '.nas["Synology (DSM 6)"].items_fixed')
-  NewDwnlUrl=$(echo $DistroJson | jq --arg ArchFamily "$ArchFamily" -r '.nas["Synology (DSM 6)"].releases[] | select(.build == "linux-"+$ArchFamily) | .url'); NewPackage="${NewDwnlUrl##*/}"
+  NewVerFull=$(jq --arg DSMplexNID "$DSMplexNID"                                -r '.nas[] | select(.id == $DSMplexNID) | .version'      < <(printf '%s' "$DistroJson"))
+  NewVersion=$(grep -oP '^.+?(?=\-)'                                                                                                     < <(printf '%s' "$NewVerFull"))
+  NewVerDate=$(jq --arg DSMplexNID "$DSMplexNID"                                -r '.nas[] | select(.id == $DSMplexNID) | .release_date' < <(printf '%s' "$DistroJson"))
+  NewVerAddd=$(jq --arg DSMplexNID "$DSMplexNID"                                -r '.nas[] | select(.id == $DSMplexNID) | .items_added'  < <(printf '%s' "$DistroJson"))
+  NewVerFixd=$(jq --arg DSMplexNID "$DSMplexNID"                                -r '.nas[] | select(.id == $DSMplexNID) | .items_fixed'  < <(printf '%s' "$DistroJson"))
+  NewDwnlUrl=$(jq --arg DSMplexNID "$DSMplexNID" --arg ArchFamily "$ArchFamily" -r '.nas[] | select(.id == $DSMplexNID) | .releases[] | select(.build == "linux-"+$ArchFamily) | .url' < <(printf '%s' "$DistroJson"))
+  NewPackage="${NewDwnlUrl##*/}"
+  
   # CALCULATE NEW PACKAGE AGE FROM RELEASE DATE
   PackageAge=$((($TodaysDate-$NewVerDate)/86400))
 else
