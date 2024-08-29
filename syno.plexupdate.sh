@@ -23,7 +23,7 @@ exec > >(tee "$SrceFllPth.log") 2>"$SrceFllPth.debug"
 set -x
 
 # SCRIPT VERSION
-SPUScrpVer=4.5.3
+SPUScrpVer=4.5.4
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -124,11 +124,12 @@ if [ "$?" -eq "0" ]; then
   SPUSRelAge=$(((TodaysDate-SPUSRlDate)/86400))
   if [ "$MasterUpdt" = "true" ]; then
     SPUSDwnUrl=https://raw.githubusercontent.com/$GitHubRepo/master/syno.plexupdate.sh
+    SPUSRelDes=$'* Check GitHub for master branch commit messages and extended descriptions'
   else
     SPUSDwnUrl=https://raw.githubusercontent.com/$GitHubRepo/v$SPUSNewVer/syno.plexupdate.sh
+    SPUSRelDes=$(jq -r '.[].body'                             < <(printf '%s' "$GitHubJson"))
   fi
   SPUSHlpUrl=https://github.com/$GitHubRepo/issues
-  SPUSRelDes=$(jq -r '.[].body'                             < <(printf '%s' "$GitHubJson"))
 else
   printf ' %s\n\n' "* UNABLE TO CHECK FOR LATEST VERSION OF SCRIPT.."
   ExitStatus=1
