@@ -23,7 +23,7 @@ exec > >(tee "$SrceFllPth.log") 2>"$SrceFllPth.debug"
 set -x
 
 # SCRIPT VERSION
-SPUScrpVer=4.6.2
+SPUScrpVer=4.6.3
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -338,12 +338,12 @@ printf '%16s %s\n'         "Synology:" "$SynoHModel ($ArchFamily), DSM $DSMVersi
 printf '%16s %s\n'         "Plex Dir:" "$(fold -w 72 -s     < <(printf '%s' "$PlexFolder") | sed '2,$s/^/                 /')"
 printf '%16s %s\n'      "Running Ver:" "$RunVersion"
 if [ "$NewVersion" != "" ]; then
-  printf '%16s %s\n'     "Online Ver:" "$NewVersion ($DSMplexNID $ChannlName Channel)"
+  printf '%16s %s\n'     "Online Ver:" "$NewVersion ($ChannlName Channel for $DSMplexNID)"
   printf '%16s %s\n'       "Released:" "$(date --rfc-3339 seconds --date @"$NewVerDate") ($PackageAge+ days old)"
 fi
 
 # COMPARE PLEX VERSIONS
-if /usr/bin/dpkg --compare-versions "$NowVersion" gt "$RunVersion"; then
+if /usr/bin/dpkg --compare-versions "$NewVersion" gt "$RunVersion"; then
   printf '%17s%s\n' '' "* Newer version found!"
   printf "\n"
   printf '%16s %s\n'    "New Package:" "$NewPackage"
