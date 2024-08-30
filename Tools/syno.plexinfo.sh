@@ -117,6 +117,10 @@ print_summary() {
   printf " Update Channel: %s\n" "$PlexChannl"
   printf "    Empty Trash: %s\n" "$PlexAutoET"
   printf "     Transcoder: %s (%s)\n" "$PlexTransc" "$PlexTransV"
+
+  printf "\n"
+  printf "PLEX MEDIA SERVER ID (DO NOT SHARE):\n"
+  printf "%s\n" "---------------"
   printf "      Device-ID: %s\n" "$PlexDevcID"
   printf "     Machine-ID: %s\n" "$PlexMachID"
   printf "   Online Token: %s\n" "$PlexOToken"
