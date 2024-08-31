@@ -23,7 +23,7 @@ exec > >(tee "$SrceFllPth.log") 2>"$SrceFllPth.debug"
 set -x
 
 # SCRIPT VERSION
-SPUScrpVer=4.6.3
+SPUScrpVer=4.6.4
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -118,7 +118,6 @@ if [ "$?" -eq "0" ]; then
   SPUSAPIDoc=$(jq -r '.[].documentation_url'                < <(printf '%s' "$GitHubJson"))
   # SCRAPE EXPECTED RELEASE-RELATED INFO
   SPUSNewVer=$(jq -r '.[].tag_name'                         < <(printf '%s' "$GitHubJson"))
-  SPUSNewVer=${SPUSNewVer#v}
   SPUSRlDate=$(jq -r '.[].published_at'                     < <(printf '%s' "$GitHubJson"))
   SPUSRlDate=$(date --date "$SPUSRlDate" +'%s')
   SPUSRelAge=$(((TodaysDate-SPUSRlDate)/86400))
@@ -221,12 +220,15 @@ ArchFamily=$(uname --machine)
 DSMVersion=$(grep -i "productversion=" "/etc.defaults/VERSION" | cut -d"\"" -f 2)
 if /usr/bin/dpkg   --compare-versions "$DSMVersion" "ge" "5.2"   && /usr/bin/dpkg --compare-versions "$DSMVersion" "lt" "7"; then
   DSMplexNID="synology"
-elif /usr/bin/dpkg --compare-versions "$DSMVersion" "eq" "7"     && /usr/bin/dpkg --compare-versions "$DSMVersion" "lt" "7.2.2"; then
+elif /usr/bin/dpkg --compare-versions "$DSMVersion" "ge" "7"     && /usr/bin/dpkg --compare-versions "$DSMVersion" "lt" "7.2.2"; then
   DSMplexNID="synology-dsm7"
-elif /usr/bin/dpkg --compare-versions "$DSMVersion" "eq" "7.2.2" && /usr/bin/dpkg --compare-versions "$DSMVersion" "lt" "7.3"; then
+elif /usr/bin/dpkg --compare-versions "$DSMVersion" "ge" "7.2.2" && /usr/bin/dpkg --compare-versions "$DSMVersion" "lt" "7.3"; then
   DSMplexNID="synology-dsm72"
 else
-  echo "Unsupported DSM version: $DSMVersion"
+  printf ' %s\n' "* Unsupported DSM version: $DSMVersion - exiting.."
+  /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server\n\nSyno.Plex Update task failed. No matching Plex version identified."}'
+  printf "\n"
+  exit 1
 fi
 
 # CHECK IF DSM 7
