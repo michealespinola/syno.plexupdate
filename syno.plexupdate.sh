@@ -23,7 +23,7 @@ exec > >(tee "$SrceFllPth.log") 2>"$SrceFllPth.debug"
 set -x
 
 # SCRIPT VERSION
-SPUScrpVer=4.6.4
+SPUScrpVer=4.6.5
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -118,6 +118,7 @@ if [ "$?" -eq "0" ]; then
   SPUSAPIDoc=$(jq -r '.[].documentation_url'                < <(printf '%s' "$GitHubJson"))
   # SCRAPE EXPECTED RELEASE-RELATED INFO
   SPUSNewVer=$(jq -r '.[].tag_name'                         < <(printf '%s' "$GitHubJson"))
+  SPUSNewVer=${SPUSNewVer#v}
   SPUSRlDate=$(jq -r '.[].published_at'                     < <(printf '%s' "$GitHubJson"))
   SPUSRlDate=$(date --date "$SPUSRlDate" +'%s')
   SPUSRelAge=$(((TodaysDate-SPUSRlDate)/86400))
