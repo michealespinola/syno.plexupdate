@@ -23,7 +23,7 @@ exec > >(tee "$SrceFllPth.log") 2>"$SrceFllPth.debug"
 set -x
 
 # SCRIPT VERSION
-SPUScrpVer=4.6.5
+SPUScrpVer=4.6.6
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -39,20 +39,32 @@ if [ "$EUID" -ne "0" ]; then
 fi
 
 # CHECK IF DEFAULT CONFIG FILE EXISTS, IF NOT CREATE IT
-if [ ! -f "$SrceFolder/config.ini" ]; then
-  printf ' %s\n\n' "* CONFIGURATION FILE (config.ini) IS MISSING, CREATING DEFAULT SETUP.."
-  {
-    printf "%s\n"  "# A NEW UPDATE MUST BE THIS MANY DAYS OLD"
-    printf "%s\n"  "MinimumAge=7"
-    printf "%s\n"  "# PREVIOUSLY DOWNLOADED PACKAGES DELETED IF OLDER THAN THIS MANY DAYS"
-    printf "%s\n"  "OldUpdates=60"
-    printf "%s\n"  "# NETWORK TIMEOUT IN SECONDS (900s = 15m)"
-    printf "%s\n"  "NetTimeout=900"
-    printf "%s\n"  "# SCRIPT WILL SELF-UPDATE IF SET TO 1"
-    printf "%s\n"  "SelfUpdate=0"
-  } >> "$SrceFolder/config.ini"
-  ExitStatus=1
-fi
+create_or_update_config() {
+  local ConfigFile="$1"
+  
+  if [ ! -f "$ConfigFile" ]; then
+    printf '%s\n\n' "* CONFIGURATION FILE (config.ini) IS MISSING, CREATING DEFAULT SETUP.."
+    touch "$ConfigFile"
+    ExitStatus=1
+  fi
+
+  # Function to add key-value pairs along with comments if not present
+  add_config_with_comment() {
+    local key="$1"
+    local value="$2"
+    local comment="$3"
+    if ! grep -q "^$key=" "$ConfigFile"; then
+      printf '%s\n' "$comment" >> "$ConfigFile"
+      printf '%s\n' "$key=$value" >> "$ConfigFile"
+    fi
+  }
+  # Default configurations
+  add_config_with_comment "MinimumAge" "7"   "# A NEW UPDATE MUST BE THIS MANY DAYS OLD"
+  add_config_with_comment "OldUpdates" "60"  "# PREVIOUSLY DOWNLOADED PACKAGES DELETED IF OLDER THAN THIS MANY DAYS"
+  add_config_with_comment "NetTimeout" "900" "# NETWORK TIMEOUT IN SECONDS (900s = 15m)"
+  add_config_with_comment "SelfUpdate" "0"   "# SCRIPT WILL SELF-UPDATE IF SET TO 1"
+}
+create_or_update_config "$SrceFolder/config.ini"
 
 # LOAD CONFIG FILE IF IT EXISTS
 if [ -f "$SrceFolder/config.ini" ]; then
