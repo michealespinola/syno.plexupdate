@@ -23,7 +23,7 @@ exec > >(tee "$SrceFllPth.log") 2>"$SrceFllPth.debug"
 set -x
 
 # SCRIPT VERSION
-SPUScrpVer=4.6.6
+SPUScrpVer=4.6.7
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -41,13 +41,11 @@ fi
 # CHECK IF DEFAULT CONFIG FILE EXISTS, IF NOT CREATE IT
 create_or_update_config() {
   local ConfigFile="$1"
-  
   if [ ! -f "$ConfigFile" ]; then
     printf '%s\n\n' "* CONFIGURATION FILE (config.ini) IS MISSING, CREATING DEFAULT SETUP.."
     touch "$ConfigFile"
     ExitStatus=1
   fi
-
   # Function to add key-value pairs along with comments if not present
   add_config_with_comment() {
     local key="$1"
@@ -118,10 +116,10 @@ GitHubRepo=michealespinola/syno.plexupdate
 GitHubHtml=$(curl -i -m "$NetTimeout" -Ls https://api.github.com/repos/$GitHubRepo/releases?per_page=1)
 if [ "$?" -eq "0" ]; then
   # AVOID SCRAPING SQUARED BRACKETS BECAUSE GITHUB IS INCONSISTENT
-  GitHubJson=$(grep -oPz '\{\s{0,6}\"\X*\s{0,4}\}'          < <(printf '%s' "$GitHubHtml"))
+  GitHubJson=$(grep -oPz '\{\s{0,6}\"\X*\s{0,4}\}'          < <(printf '%s' "$GitHubHtml") | tr -d '\0')
   # ADD SQUARED BRACKETS BECAUSE ITS PROPER AND JQ NEEDS IT
   GitHubJson=$'[\n'"$GitHubJson"$'\n]'
-  GitHubHtml=$(grep -oPz '\X*\{\W{0,6}\"'                   < <(printf '%s' "$GitHubHtml") | sed -z 's/\W\[.*//')
+  GitHubHtml=$(grep -oPz '\X*\{\W{0,6}\"'                   < <(printf '%s' "$GitHubHtml")  | tr -d '\0' | sed -z 's/\W\[.*//')
   # SCRAPE CURRENT RATE LIMIT
   SPUSAPIRlm=$(grep -oP '^x-ratelimit-limit: \K[\d]+'       < <(printf '%s' "$GitHubHtml"))
   SPUSAPIRlr=$(grep -oP '^x-ratelimit-remaining: \K[\d]+'   < <(printf '%s' "$GitHubHtml"))
