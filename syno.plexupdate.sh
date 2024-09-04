@@ -23,11 +23,11 @@ exec > >(tee "$SrceFllPth.log") 2>"$SrceFllPth.debug"
 set -x
 
 # SCRIPT VERSION
-SPUScrpVer=4.6.8
+SpuscrpVer=4.6.9
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
-printf "%s\n" "SYNO.PLEX UPDATE SCRIPT v$SPUScrpVer for DSM 7"
+printf "%s\n" "SYNO.PLEX UPDATE SCRIPT v$SpuscrpVer for DSM 7"
 printf "\n"
 
 # CHECK IF ROOT
@@ -70,9 +70,8 @@ if [ -f "$SrceFolder/config.ini" ]; then
 fi
 
 # PRINT SCRIPT STATUS/DEBUG INFO
-printf '%16s %s\n'                 "Script:" "$SrceFileNm"
-printf '%16s %s\n'             "Script Dir:" "$(fold -w 72 -s     < <(printf '%s' "$SrceFolder") | sed '2,$s/^/                 /')"
-
+printf '%16s %s\n'                   "Script:" "$SrceFileNm"
+printf '%16s %s\n'               "Script Dir:" "$(fold -w 72 -s     < <(printf '%s' "$SrceFolder") | sed '2,$s/^/                 /')"
 
 # OVERRIDE SETTINGS WITH CLI OPTIONS
 while getopts ":a:c:mh" opt; do
@@ -81,29 +80,29 @@ while getopts ":a:c:mh" opt; do
       # Check if the value is numerical only
       if [[ $OPTARG =~ ^[0-9]+$ ]]; then
         MinimumAge=$OPTARG
-        printf '%16s %s\n'       "Override:" "-a, Minimum Age set to $MinimumAge days"
+        printf '%16s %s\n'         "Override:" "-a, Minimum Age set to $MinimumAge days"
       else
-        printf '%16s %s\n\n'   "Bad Option:" "-a, requires a number value for minimum age in days"
+        printf '\n%16s %s\n\n'   "Bad Option:" "-a, requires a number value for minimum age in days"
         exit 1
       fi
       ;;
     c) # CHOOSE UPDATE CHANNEL
       case $OPTARG in
         p) UpdtChannl="0" # Public channel
-          printf '%16s %s\n'     "Override:" "-c, Update Channel set to Public"
+          printf '%16s %s\n'       "Override:" "-c, Update Channel set to Public"
           ;;
         b) UpdtChannl="8" # Beta channel
-          printf '%16s %s\n'     "Override:" "-c, Update Channel set to Beta"
+          printf '%16s %s\n'       "Override:" "-c, Update Channel set to Beta"
           ;;
         *)
-          printf '%16s %s\n\n' "Bad Option:" "-c, Requires either 'p' for Public or 'b' for Beta channels"
+          printf '\n%16s %s\n\n' "Bad Option:" "-c, Requires either 'p' for Public or 'b' for Beta channels"
           exit 1
           ;;
       esac
       ;;
     m) # UPDATE TO MASTER BRANCH (NON-RELEASE)
       MasterUpdt=true
-      printf '%16s %s\n'         "Override:" "-m, Forcing script update from Master branch"
+      printf '%16s %s\n'           "Override:" "-m, Forcing script update from Master branch"
       ;;
     h) # HELP OPTION
       printf '\n%s\n\n'  "Usage: $SrceFileNm [-a #] [-c p|b] [-m] [-h]"
@@ -114,11 +113,11 @@ while getopts ":a:c:mh" opt; do
       exit 0
       ;;
     \?) # INVALID OPTION
-      printf '%16s %s\n\n'     "Bad Option:" "-$OPTARG, Invalid"
+      printf '\n%16s %s\n\n'     "Bad Option:" "-$OPTARG, Invalid"
       exit 1
       ;;
     :) # MISSING ARGUMENT
-      printf '%16s %s\n\n'     "Bad Option:" "-$OPTARG, Requires an argument"
+      printf '\n%16s %s\n\n'     "Bad Option:" "-$OPTARG, Requires an argument"
       exit 1
       ;;
   esac
@@ -128,12 +127,12 @@ done
 if [ ! -d "$SrceFolder/Archive/Scripts" ]; then
   mkdir -p "$SrceFolder/Archive/Scripts"
 fi
-if [ ! -f "$SrceFolder/Archive/Scripts/syno.plexupdate.v$SPUScrpVer.sh" ]; then
-  cp "$SrceFllPth" "$SrceFolder/Archive/Scripts/syno.plexupdate.v$SPUScrpVer.sh"
+if [ ! -f "$SrceFolder/Archive/Scripts/syno.plexupdate.v$SpuscrpVer.sh" ]; then
+  cp "$SrceFllPth" "$SrceFolder/Archive/Scripts/syno.plexupdate.v$SpuscrpVer.sh"
 else
-  cmp -s "$SrceFllPth" "$SrceFolder/Archive/Scripts/syno.plexupdate.v$SPUScrpVer.sh"
+  cmp -s "$SrceFllPth" "$SrceFolder/Archive/Scripts/syno.plexupdate.v$SpuscrpVer.sh"
   if [ "$?" -ne "0" ]; then
-    cp "$SrceFllPth" "$SrceFolder/Archive/Scripts/syno.plexupdate.v$SPUScrpVer.sh"
+    cp "$SrceFllPth" "$SrceFolder/Archive/Scripts/syno.plexupdate.v$SpuscrpVer.sh"
   fi
 fi
 
@@ -150,25 +149,28 @@ if [ "$?" -eq "0" ]; then
   GitHubJson=$'[\n'"$GitHubJson"$'\n]'
   GitHubHtml=$(grep -oPz '\X*\{\W{0,6}\"'                   < <(printf '%s' "$GitHubHtml")  | tr -d '\0' | sed -z 's/\W\[.*//')
   # SCRAPE CURRENT RATE LIMIT
-  SPUSAPIRlm=$(grep -oP '^x-ratelimit-limit: \K[\d]+'       < <(printf '%s' "$GitHubHtml"))
-  SPUSAPIRlr=$(grep -oP '^x-ratelimit-remaining: \K[\d]+'   < <(printf '%s' "$GitHubHtml"))
+  SpusApiRlm=$(grep -oP '^x-ratelimit-limit: \K[\d]+'       < <(printf '%s' "$GitHubHtml"))
+  SpusApiRlr=$(grep -oP '^x-ratelimit-remaining: \K[\d]+'   < <(printf '%s' "$GitHubHtml"))
+  #if [[ -n "$SpusApiRlm" && -n "$SpusApiRlr" ]]; then
+  #  SpusApiRla=$((SpusApiRlm - SpusApiRlr))
+  #fi
   # SCRAPE API MESSAGES
-  SPUSAPIMsg=$(jq -r '.[].message'                          < <(printf '%s' "$GitHubJson"))
-  SPUSAPIDoc=$(jq -r '.[].documentation_url'                < <(printf '%s' "$GitHubJson"))
+  SpusApiMsg=$(jq -r '.[].message'                          < <(printf '%s' "$GitHubJson"))
+  SpusApiDoc=$(jq -r '.[].documentation_url'                < <(printf '%s' "$GitHubJson"))
   # SCRAPE EXPECTED RELEASE-RELATED INFO
-  SPUSNewVer=$(jq -r '.[].tag_name'                         < <(printf '%s' "$GitHubJson"))
-  SPUSNewVer=${SPUSNewVer#v}
-  SPUSRlDate=$(jq -r '.[].published_at'                     < <(printf '%s' "$GitHubJson"))
-  SPUSRlDate=$(date --date "$SPUSRlDate" +'%s')
-  SPUSRelAge=$(((TodaysDate-SPUSRlDate)/86400))
+  SpusNewVer=$(jq -r '.[].tag_name'                         < <(printf '%s' "$GitHubJson"))
+  SpusNewVer=${SpusNewVer#v}
+  SpusRlDate=$(jq -r '.[].published_at'                     < <(printf '%s' "$GitHubJson"))
+  SpusRlDate=$(date --date "$SpusRlDate" +'%s')
+  SpusRelAge=$(((TodaysDate-SpusRlDate)/86400))
   if [ "$MasterUpdt" = "true" ]; then
-    SPUSDwnUrl=https://raw.githubusercontent.com/$GitHubRepo/master/syno.plexupdate.sh
-    SPUSRelDes=$'* Check GitHub for master branch commit messages and extended descriptions'
+    SpusDwnUrl=https://raw.githubusercontent.com/$GitHubRepo/master/syno.plexupdate.sh
+    SpusRelDes=$'* Check GitHub for master branch commit messages and extended descriptions'
   else
-    SPUSDwnUrl=https://raw.githubusercontent.com/$GitHubRepo/v$SPUSNewVer/syno.plexupdate.sh
-    SPUSRelDes=$(jq -r '.[].body'                             < <(printf '%s' "$GitHubJson"))
+    SpusDwnUrl=https://raw.githubusercontent.com/$GitHubRepo/v$SpusNewVer/syno.plexupdate.sh
+    SpusRelDes=$(jq -r '.[].body'                             < <(printf '%s' "$GitHubJson"))
   fi
-  SPUSHlpUrl=https://github.com/$GitHubRepo/issues
+  SpusHlpUrl=https://github.com/$GitHubRepo/issues
 else
   printf ' %s\n\n' "* UNABLE TO CHECK FOR LATEST VERSION OF SCRIPT.."
   ExitStatus=1
@@ -177,21 +179,21 @@ fi
 # PRINT SCRIPT STATUS/DEBUG INFO
 #printf '%16s %s\n'           "Script:" "$SrceFileNm"
 #printf '%16s %s\n'       "Script Dir:" "$(fold -w 72 -s     < <(printf '%s' "$SrceFolder") | sed '2,$s/^/                 /')"
-printf '%16s %s\n'      "Running Ver:" "$SPUScrpVer"
+printf '%16s %s\n'      "Running Ver:" "$SpuscrpVer"
 
-if [ "$SPUSNewVer" = "null" ]; then
-  printf "%16s %s\n" "GitHub API Msg:" "$(fold -w 72 -s     < <(printf '%s' "$SPUSAPIMsg") | sed '2,$s/^/                 /')"
-  printf "%16s %s\n" "GitHub API Lmt:" "$SPUSAPIRlm connections per hour per IP"
-  printf "%16s %s\n" "GitHub API Doc:" "$(fold -w 72 -s     < <(printf '%s' "$SPUSAPIDoc") | sed '2,$s/^/                 /')"
+if [ "$SpusNewVer" = "null" ]; then
+  printf "%16s %s\n" "GitHub API Msg:" "$(fold -w 72 -s     < <(printf '%s' "$SpusApiMsg") | sed '2,$s/^/                 /')"
+  printf "%16s %s\n" "GitHub API Lmt:" "$SpusApiRlm connections per hour per IP"
+  printf "%16s %s\n" "GitHub API Doc:" "$(fold -w 72 -s     < <(printf '%s' "$SpusApiDoc") | sed '2,$s/^/                 /')"
   ExitStatus=1
-elif [ "$SPUSNewVer" != "" ]; then
-  printf '%16s %s\n'     "Online Ver:" "$SPUSNewVer (attempt $SPUSAPIRlr/$SPUSAPIRlm)"
-  printf '%16s %s\n'       "Released:" "$(date --rfc-3339 seconds --date @"$SPUSRlDate") ($SPUSRelAge+ days old)"
+elif [ "$SpusNewVer" != "" ]; then
+  printf '%16s %s\n'     "Online Ver:" "$SpusNewVer (attempts left $SpusApiRlr/$SpusApiRlm)"
+  printf '%16s %s\n'       "Released:" "$(date --rfc-3339 seconds --date @"$SpusRlDate") ($SpusRelAge+ days old)"
 fi
 
 # COMPARE SCRIPT VERSIONS
-if [[ "$SPUSNewVer" != "null" ]]; then
-  if /usr/bin/dpkg --compare-versions "$SPUSNewVer" gt "$SPUScrpVer" || [[ "$MasterUpdt" == "true" ]]; then
+if [[ "$SpusNewVer" != "null" ]]; then
+  if /usr/bin/dpkg --compare-versions "$SpusNewVer" gt "$SpuscrpVer" || [[ "$MasterUpdt" == "true" ]]; then
     if [[ "$MasterUpdt" == "true" ]]; then
       printf '%17s%s\n' '' "* Updating from master branch!"
     else
@@ -199,11 +201,11 @@ if [[ "$SPUSNewVer" != "null" ]]; then
     fi
     # DOWNLOAD AND INSTALL THE SCRIPT UPDATE
     if [ "$SelfUpdate" -eq "1" ]; then
-      if [ "$SPUSRelAge" -ge "$MinimumAge" ] || [ "$MasterUpdt" = "true" ]; then
+      if [ "$SpusRelAge" -ge "$MinimumAge" ] || [ "$MasterUpdt" = "true" ]; then
         printf "\n"
         printf "%s\n" "INSTALLING NEW SCRIPT:"
         printf "%s\n" "----------------------------------------"
-        /bin/wget -nv -O "$SrceFolder/Archive/Scripts/$SrceFileNm" "$SPUSDwnUrl"                               2>&1
+        /bin/wget -nv -O "$SrceFolder/Archive/Scripts/$SrceFileNm" "$SpusDwnUrl"                               2>&1
         if [ "$?" -eq "0" ]; then
           # MAKE A COPY FOR UPGRADE COMPARISON BECAUSE WE ARE GOING TO MOVE NOT COPY THE NEW FILE
           cp -f -v "$SrceFolder/Archive/Scripts/$SrceFileNm"     "$SrceFolder/Archive/Scripts/$SrceFileNm.cmp" 2>&1
@@ -215,14 +217,14 @@ if [[ "$SPUSNewVer" != "null" ]]; then
             printf '%17s%s\n' '' "* Script update succeeded!"
             /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Syno.Plex Update\n\nSelf-Update completed successfully"}'
             ExitStatus=1
-            if [ -n "$SPUSRelDes" ]; then
+            if [ -n "$SpusRelDes" ]; then
               # SHOW RELEASE NOTES
               printf "\n"
               printf "%s\n" "RELEASE NOTES:"
               printf "%s\n" "----------------------------------------"
-              printf "%s\n" "$SPUSRelDes"
+              printf "%s\n" "$SpusRelDes"
               printf "%s\n" "----------------------------------------"
-              printf "%s\n" "Report issues to: $SPUSHlpUrl"
+              printf "%s\n" "Report issues to: $SpusHlpUrl"
             fi
           else
             printf '%17s%s\n' '' "* Script update failed to overwrite."
@@ -388,6 +390,9 @@ printf '%16s %s\n'      "Running Ver:" "$RunVersion"
 if [ "$NewVersion" != "" ]; then
   printf '%16s %s\n'     "Online Ver:" "$NewVersion ($ChannlName Channel for $DSMplexNID)"
   printf '%16s %s\n'       "Released:" "$(date --rfc-3339 seconds --date @"$NewVerDate") ($PackageAge+ days old)"
+else
+  printf '%16s %s\n'     "Online Ver:" "Nonexistent ($ChannlName Channel for $DSMplexNID)"
+  ExitStatus=1
 fi
 
 # COMPARE PLEX VERSIONS
