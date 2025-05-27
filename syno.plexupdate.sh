@@ -19,11 +19,12 @@ SrceFileNm=${SrceFllPth##*/}
 
 # REDIRECT STDOUT TO TEE IN ORDER TO DUPLICATE THE OUTPUT TO THE TERMINAL AS WELL AS A .LOG FILE
 exec > >(tee "$SrceFllPth.log") 2>"$SrceFllPth.debug"
+
 # ENABLE XTRACE OUTPUT FOR DEBUG FILE
 set -x
 
 # SCRIPT VERSION
-SpuscrpVer=4.6.9
+SpuscrpVer=4.6.10
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -113,11 +114,11 @@ while getopts ":a:c:mh" opt; do
       exit 0
       ;;
     \?) # INVALID OPTION
-      printf '\n%16s %s\n\n'     "Bad Option:" "-$OPTARG, Invalid"
+      printf '\n%16s %s\n\n'     "Bad Option:" "-$OPTARG, Invalid (-h for help)"
       exit 1
       ;;
     :) # MISSING ARGUMENT
-      printf '\n%16s %s\n\n'     "Bad Option:" "-$OPTARG, Requires an argument"
+      printf '\n%16s %s\n\n'     "Bad Option:" "-$OPTARG, Requires an argument (-h for help)"
       exit 1
       ;;
   esac
@@ -340,7 +341,7 @@ if [ "$?" -eq "0" ]; then
   PlexTvJson=$(grep -oPz '\{\s{0,6}\"\X*\s{0,4}\}'          < <(printf '%s' "$PlexTvHtml") | tr -d '\0')
   # ADD SQUARED BRACKETS BECAUSE ITS PROPER AND JQ NEEDS IT
   PlexTvJson=$'[\n'"$PlexTvJson"$'\n]'
-  #PlexTvHtml=$(grep -oPz '\X*\{\W{0,6}\"'                   < <(printf '%s' "$PlexTvHtml")  | tr -d '\0' | sed -z 's/\W\[.*//')
+ #PlexTvHtml=$(grep -oPz '\X*\{\W{0,6}\"'                   < <(printf '%s' "$PlexTvHtml")  | tr -d '\0' | sed -z 's/\W\[.*//')
   NewVerFull=$(jq --arg DSMplexNID "$DSMplexNID"                                -r '.[].nas[] | select(.id == $DSMplexNID) | .version'      < <(printf '%s' "$PlexTvJson"))
   NewVersion=$(grep -oP '^.+?(?=\-)'                                                                                                        < <(printf '%s' "$NewVerFull"))
   NewVerDate=$(jq --arg DSMplexNID "$DSMplexNID"                                -r '.[].nas[] | select(.id == $DSMplexNID) | .release_date' < <(printf '%s' "$PlexTvJson"))
@@ -413,12 +414,27 @@ if /usr/bin/dpkg --compare-versions "$NewVersion" gt "$RunVersion"; then
     fi
     /bin/wget -nv -c -nc -P "$SrceFolder/Archive/Packages/" "$NewDwnlUrl"                                      2>&1
     if [ "$?" -eq "0" ]; then
-      printf "\n%s\n"   "Stopping PlexMediaServer service:"
+      printf "\n%s\n"   "Stopping PlexMediaServer service (JSON):"
       /usr/syno/bin/synopkg stop    "PlexMediaServer"
-      printf "\n%s\n" "Installing PlexMediaServer update:"
+      printf "\n%s\n" "Installing PlexMediaServer update (JSON):"
       # INSTALL WHILE STRIPPING OUTPUT ANNOYANCES 
-      /usr/syno/bin/synopkg install "$SrceFolder/Archive/Packages/$NewPackage" | awk '{gsub("<[^>]*>", "")}1' | awk '{gsub(/\\nNote:.*?\\n",/, RS)}1'
-      printf "\n%s\n" "Starting PlexMediaServer service:"
+     #/usr/syno/bin/synopkg install "$SrceFolder/Archive/Packages/$NewPackage" | awk '{gsub("<[^>]*>", "")}1' | awk '{gsub(/\\nNote:.*?\\n",/, RS)}1'
+     #/usr/syno/bin/synopkg install "$SrceFolder/Archive/Packages/$NewPackage" | jq -r '.results[].scripts?[]?.message? // empty | gsub("<[^>]*>"; "") | sub("Note:.*"; "") | sub("[[:space:]]+$"; "")'
+      /usr/syno/bin/synopkg install "$SrceFolder/Archive/Packages/$NewPackage" | \
+        jq -c '.results[] |= (
+          if (.scripts // empty) | type == "array" then
+            .scripts |= map(
+              if .message then
+                .message |= (
+                  gsub("<[^>]*>"; "")     # Strip HTML
+                  | split("\n")[0]        # Keep only the first real line
+                )
+              else . end
+            )
+          else .
+          end
+        )'
+      printf "\n%s\n" "Starting PlexMediaServer service (JSON):"
       /usr/syno/bin/synopkg start   "PlexMediaServer"
     else
       printf '\n %s\n' "* Package download failed, skipping install.."
