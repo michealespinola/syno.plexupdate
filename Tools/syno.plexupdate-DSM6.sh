@@ -11,7 +11,7 @@
 # bash /volume1/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
 
 # SCRIPT VERSION
-SPUScrpVer=3.1.2
+SPUScrpVer=3.1.3
 MinDSMVers=6.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
