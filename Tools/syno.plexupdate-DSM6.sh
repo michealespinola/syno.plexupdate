@@ -20,9 +20,21 @@ printf "\n"
 
 # CHECK IF ROOT
 if [ "$EUID" -ne "0" ]; then
-  printf " %s\n" "* This script MUST be run as root - exiting..."
+  printf "\n %s\n" "* This script MUST be run as root - exiting..."
   /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server\n\nSyno.Plex Update task failed. Script was not run as root."}'
   printf "\n"
+  exit 1
+fi
+
+# CHECK FOR BASIC INTERNET CONNECTIVITY
+if nslookup one.one.one.one >/dev/null 2>&1; then
+ #printf '\n %s\n\n' "* OK: DNS resolution works.."
+  :
+elif ping -c 1 -W 2 1.1.1.1 >/dev/null 2>&1; then
+  printf '\n %s\n\n' "* DNS resolution appears to be failing - exiting.."
+  exit 1
+else
+  printf '\n %s\n\n' "* Internet appears to be down - exiting.."
   exit 1
 fi
 
