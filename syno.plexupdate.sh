@@ -10,7 +10,7 @@
 # Original update concept based on: https://github.com/martinorob/plexupdate
 #
 # Example Synology DSM Scheduled Task type 'user-defined script': 
-# bash /volume1/homes/admin/scripts/bash/plex/syno.plexupdate/syno.plexupdate.sh
+# bash /volume1/homes/admin/scripts/bash/plex/syno.plexupdate.sh
 
 # SCRAPE SCRIPT PATH INFO
 SrceFllPth=$(readlink -f "${BASH_SOURCE[0]}")
@@ -24,7 +24,7 @@ exec > >(tee "$SrceFllPth.log") 2>"$SrceFllPth.debug"
 set -x
 
 # SCRIPT VERSION
-SpuscrpVer=4.6.10
+SpuscrpVer=4.7.0
 MinDSMVers=7.0
 # PRINT OUR GLORIOUS HEADER BECAUSE WE ARE FULL OF OURSELVES
 printf "\n"
@@ -33,7 +33,7 @@ printf "\n"
 
 # CHECK IF ROOT
 if [ "$EUID" -ne "0" ]; then
-  printf ' %s\n' "* This script MUST be run as root - exiting.."
+  printf ' %s\n\n' "* This script MUST be run as root - exiting.."
   /usr/syno/bin/synonotify PKGHasUpgrade '{"%PKG_HAS_UPDATE%": "Plex Media Server\n\nSyno.Plex Update task failed. Script was not run as root."}'
   printf "\n"
   exit 1
@@ -43,7 +43,7 @@ fi
 create_or_update_config() {
   local ConfigFile="$1"
   if [ ! -f "$ConfigFile" ]; then
-    printf '%s\n\n' "* CONFIGURATION FILE (config.ini) IS MISSING, CREATING DEFAULT SETUP.."
+    printf ' %s\n\n' "* CONFIGURATION FILE (config.ini) IS MISSING, CREATING DEFAULT SETUP.."
     touch "$ConfigFile"
     ExitStatus=1
   fi
@@ -73,6 +73,18 @@ fi
 # PRINT SCRIPT STATUS/DEBUG INFO
 printf '%16s %s\n'                   "Script:" "$SrceFileNm"
 printf '%16s %s\n'               "Script Dir:" "$(fold -w 72 -s     < <(printf '%s' "$SrceFolder") | sed '2,$s/^/                 /')"
+
+# CHECK FOR BASIC INTERNET CONNECTIVITY
+if nslookup one.one.one.one >/dev/null 2>&1; then
+ #printf '\n %s\n\n' "* OK: DNS resolution works.."
+  :
+elif ping -c 1 -W 2 1.1.1.1 >/dev/null 2>&1; then
+  printf '\n %s\n\n' "* DNS resolution appears to be failing - exiting.."
+  exit 1
+else
+  printf '\n %s\n\n' "* Internet appears to be down - exiting.."
+  exit 1
+fi
 
 # OVERRIDE SETTINGS WITH CLI OPTIONS
 while getopts ":a:c:mh" opt; do
