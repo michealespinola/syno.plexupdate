@@ -1,0 +1,2 @@
+1.43.3.10861
+Review the Plex Media Server release notes before updating.
